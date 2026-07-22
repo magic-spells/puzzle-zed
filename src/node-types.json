@@ -1,0 +1,1583 @@
+[
+  {
+    "type": "_node",
+    "named": true,
+    "subtypes": [
+      {
+        "type": "block_comment",
+        "named": true
+      },
+      {
+        "type": "case_statement",
+        "named": true
+      },
+      {
+        "type": "comment",
+        "named": true
+      },
+      {
+        "type": "element",
+        "named": true
+      },
+      {
+        "type": "for_statement",
+        "named": true
+      },
+      {
+        "type": "if_statement",
+        "named": true
+      },
+      {
+        "type": "inline_comment",
+        "named": true
+      },
+      {
+        "type": "interpolation",
+        "named": true
+      },
+      {
+        "type": "self_closing_element",
+        "named": true
+      },
+      {
+        "type": "svg_directive",
+        "named": true
+      },
+      {
+        "type": "text",
+        "named": true
+      },
+      {
+        "type": "unless_statement",
+        "named": true
+      },
+      {
+        "type": "void_element",
+        "named": true
+      }
+    ]
+  },
+  {
+    "type": "attribute",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "event_attribute",
+          "named": true
+        },
+        {
+          "type": "normal_attribute",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "attribute_case_else_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute_case_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_for_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_if_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_text",
+          "named": true
+        },
+        {
+          "type": "attribute_unless_statement",
+          "named": true
+        },
+        {
+          "type": "else_start",
+          "named": true
+        },
+        {
+          "type": "interpolation",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "attribute_case_statement",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute_case_else_block",
+          "named": true
+        },
+        {
+          "type": "attribute_when_block",
+          "named": true
+        },
+        {
+          "type": "case_end",
+          "named": true
+        },
+        {
+          "type": "case_start",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "attribute_else_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute_case_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_for_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_if_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_text",
+          "named": true
+        },
+        {
+          "type": "attribute_unless_statement",
+          "named": true
+        },
+        {
+          "type": "else_start",
+          "named": true
+        },
+        {
+          "type": "interpolation",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "attribute_else_if_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute_case_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_for_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_if_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_text",
+          "named": true
+        },
+        {
+          "type": "attribute_unless_statement",
+          "named": true
+        },
+        {
+          "type": "else_if_start",
+          "named": true
+        },
+        {
+          "type": "interpolation",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "attribute_for_else_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute_case_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_for_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_if_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_text",
+          "named": true
+        },
+        {
+          "type": "attribute_unless_statement",
+          "named": true
+        },
+        {
+          "type": "else_start",
+          "named": true
+        },
+        {
+          "type": "interpolation",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "attribute_for_statement",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute_case_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_for_else_block",
+          "named": true
+        },
+        {
+          "type": "attribute_for_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_if_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_text",
+          "named": true
+        },
+        {
+          "type": "attribute_unless_statement",
+          "named": true
+        },
+        {
+          "type": "for_end",
+          "named": true
+        },
+        {
+          "type": "for_start",
+          "named": true
+        },
+        {
+          "type": "interpolation",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "attribute_if_statement",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute_case_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_else_block",
+          "named": true
+        },
+        {
+          "type": "attribute_else_if_block",
+          "named": true
+        },
+        {
+          "type": "attribute_for_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_if_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_text",
+          "named": true
+        },
+        {
+          "type": "attribute_unless_statement",
+          "named": true
+        },
+        {
+          "type": "if_end",
+          "named": true
+        },
+        {
+          "type": "if_start",
+          "named": true
+        },
+        {
+          "type": "interpolation",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "attribute_unless_statement",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute_case_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_else_block",
+          "named": true
+        },
+        {
+          "type": "attribute_for_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_if_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_text",
+          "named": true
+        },
+        {
+          "type": "attribute_unless_statement",
+          "named": true
+        },
+        {
+          "type": "interpolation",
+          "named": true
+        },
+        {
+          "type": "unless_end",
+          "named": true
+        },
+        {
+          "type": "unless_start",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "attribute_when_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute_case_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_for_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_if_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_text",
+          "named": true
+        },
+        {
+          "type": "attribute_unless_statement",
+          "named": true
+        },
+        {
+          "type": "interpolation",
+          "named": true
+        },
+        {
+          "type": "when_start",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "case_else_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_node",
+          "named": true
+        },
+        {
+          "type": "else_start",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "case_end",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "directive_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "case_start",
+    "named": true,
+    "fields": {
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expression_content",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "directive_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "case_statement",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "case_else_block",
+          "named": true
+        },
+        {
+          "type": "case_end",
+          "named": true
+        },
+        {
+          "type": "case_start",
+          "named": true
+        },
+        {
+          "type": "when_block",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "document",
+    "named": true,
+    "root": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "_node",
+          "named": true
+        },
+        {
+          "type": "scripts_element",
+          "named": true
+        },
+        {
+          "type": "skeleton_element",
+          "named": true
+        },
+        {
+          "type": "styles_element",
+          "named": true
+        },
+        {
+          "type": "view_element",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "element",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_node",
+          "named": true
+        },
+        {
+          "type": "end_tag",
+          "named": true
+        },
+        {
+          "type": "start_tag",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "else_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_node",
+          "named": true
+        },
+        {
+          "type": "else_start",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "else_if_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_node",
+          "named": true
+        },
+        {
+          "type": "else_if_start",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "else_if_start",
+    "named": true,
+    "fields": {
+      "condition": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expression_content",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "directive_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "else_start",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "directive_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "end_tag",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "tag_name",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "event_attribute",
+    "named": true,
+    "fields": {
+      "modifier": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "event_modifier",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "event_name",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "interpolation",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "event_modifier",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "event_name",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "for_else_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_node",
+          "named": true
+        },
+        {
+          "type": "else_start",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "for_end",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "directive_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "for_start",
+    "named": true,
+    "fields": {
+      "clause": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expression_content",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "directive_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "for_statement",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_node",
+          "named": true
+        },
+        {
+          "type": "for_else_block",
+          "named": true
+        },
+        {
+          "type": "for_end",
+          "named": true
+        },
+        {
+          "type": "for_start",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "if_end",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "directive_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "if_start",
+    "named": true,
+    "fields": {
+      "condition": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expression_content",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "directive_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "if_statement",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_node",
+          "named": true
+        },
+        {
+          "type": "else_block",
+          "named": true
+        },
+        {
+          "type": "else_if_block",
+          "named": true
+        },
+        {
+          "type": "if_end",
+          "named": true
+        },
+        {
+          "type": "if_start",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "interpolation",
+    "named": true,
+    "fields": {
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expression_content",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "normal_attribute",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_name",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "interpolation",
+            "named": true
+          },
+          {
+            "type": "quoted_attribute_value",
+            "named": true
+          },
+          {
+            "type": "unquoted_attribute_value",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "quoted_attribute_value",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "attribute_case_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_for_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_if_statement",
+          "named": true
+        },
+        {
+          "type": "attribute_text",
+          "named": true
+        },
+        {
+          "type": "attribute_unless_statement",
+          "named": true
+        },
+        {
+          "type": "interpolation",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "scripts_element",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "script_content",
+          "named": true
+        },
+        {
+          "type": "scripts_end_tag",
+          "named": true
+        },
+        {
+          "type": "scripts_start_tag",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "scripts_end_tag",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "section_tag_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "scripts_start_tag",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute",
+          "named": true
+        },
+        {
+          "type": "section_tag_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "self_closing_element",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "tag_name",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "attribute",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "skeleton_element",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_node",
+          "named": true
+        },
+        {
+          "type": "skeleton_end_tag",
+          "named": true
+        },
+        {
+          "type": "skeleton_start_tag",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "skeleton_end_tag",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "section_tag_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "skeleton_start_tag",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute",
+          "named": true
+        },
+        {
+          "type": "section_tag_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "start_tag",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "tag_name",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "attribute",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "styles_element",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "style_content",
+          "named": true
+        },
+        {
+          "type": "styles_end_tag",
+          "named": true
+        },
+        {
+          "type": "styles_start_tag",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "styles_end_tag",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "section_tag_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "styles_start_tag",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute",
+          "named": true
+        },
+        {
+          "type": "section_tag_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "svg_directive",
+    "named": true,
+    "fields": {
+      "path": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expression_content",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "directive_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "unless_end",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "directive_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "unless_start",
+    "named": true,
+    "fields": {
+      "condition": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expression_content",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "directive_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "unless_statement",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_node",
+          "named": true
+        },
+        {
+          "type": "else_block",
+          "named": true
+        },
+        {
+          "type": "unless_end",
+          "named": true
+        },
+        {
+          "type": "unless_start",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "view_element",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_node",
+          "named": true
+        },
+        {
+          "type": "view_end_tag",
+          "named": true
+        },
+        {
+          "type": "view_start_tag",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "view_end_tag",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "section_tag_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "view_start_tag",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute",
+          "named": true
+        },
+        {
+          "type": "section_tag_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "void_element",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "void_tag_name",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "attribute",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "void_tag_name",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "when_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_node",
+          "named": true
+        },
+        {
+          "type": "when_start",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "when_start",
+    "named": true,
+    "fields": {
+      "values": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expression_content",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "directive_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "\"",
+    "named": false
+  },
+  {
+    "type": "#",
+    "named": false
+  },
+  {
+    "type": "'",
+    "named": false
+  },
+  {
+    "type": "/",
+    "named": false
+  },
+  {
+    "type": "/>",
+    "named": false
+  },
+  {
+    "type": ":",
+    "named": false
+  },
+  {
+    "type": "<",
+    "named": false
+  },
+  {
+    "type": "</",
+    "named": false
+  },
+  {
+    "type": "=",
+    "named": false
+  },
+  {
+    "type": ">",
+    "named": false
+  },
+  {
+    "type": "@",
+    "named": false
+  },
+  {
+    "type": "area",
+    "named": false
+  },
+  {
+    "type": "attribute_name",
+    "named": true
+  },
+  {
+    "type": "attribute_text",
+    "named": true
+  },
+  {
+    "type": "base",
+    "named": false
+  },
+  {
+    "type": "block_comment",
+    "named": true
+  },
+  {
+    "type": "br",
+    "named": false
+  },
+  {
+    "type": "col",
+    "named": false
+  },
+  {
+    "type": "comment",
+    "named": true
+  },
+  {
+    "type": "directive_name",
+    "named": true
+  },
+  {
+    "type": "embed",
+    "named": false
+  },
+  {
+    "type": "expression_content",
+    "named": true
+  },
+  {
+    "type": "hr",
+    "named": false
+  },
+  {
+    "type": "img",
+    "named": false
+  },
+  {
+    "type": "inline_comment",
+    "named": true
+  },
+  {
+    "type": "input",
+    "named": false
+  },
+  {
+    "type": "link",
+    "named": false
+  },
+  {
+    "type": "meta",
+    "named": false
+  },
+  {
+    "type": "param",
+    "named": false
+  },
+  {
+    "type": "script_content",
+    "named": true
+  },
+  {
+    "type": "section_tag_name",
+    "named": true
+  },
+  {
+    "type": "source",
+    "named": false
+  },
+  {
+    "type": "style_content",
+    "named": true
+  },
+  {
+    "type": "tag_name",
+    "named": true
+  },
+  {
+    "type": "text",
+    "named": true
+  },
+  {
+    "type": "track",
+    "named": false
+  },
+  {
+    "type": "unquoted_attribute_value",
+    "named": true
+  },
+  {
+    "type": "wbr",
+    "named": false
+  },
+  {
+    "type": "{",
+    "named": false
+  },
+  {
+    "type": "}",
+    "named": false
+  }
+]

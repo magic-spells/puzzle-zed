@@ -1,0 +1,29 @@
+{
+  "grammars": [
+    {
+      "name": "puzzle",
+      "camelcase": "Puzzle",
+      "scope": "text.html.puzzle",
+      "path": ".",
+      "file-types": [
+        "pzl"
+      ],
+      "injection-regex": "^puzzle$",
+      "highlights": "queries/highlights.scm",
+      "injections": "queries/injections.scm"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "Puzzle single-file components",
+    "authors": [
+      {
+        "name": "Magic Spells"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/magic-spells/puzzle-zed"
+    }
+  }
+}

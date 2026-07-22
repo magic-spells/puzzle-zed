@@ -1,0 +1,43 @@
+{
+  "name": "tree-sitter-puzzle",
+  "version": "0.1.0",
+  "description": "Tree-sitter grammar and Zed language extension for Puzzle single-file components",
+  "license": "MIT",
+  "author": "Magic Spells",
+  "repository": "github:magic-spells/puzzle-zed",
+  "main": "bindings/node",
+  "files": [
+    "grammar.js",
+    "queries/**",
+    "src/**"
+  ],
+  "keywords": [
+    "puzzle",
+    "tree-sitter",
+    "zed",
+    "pzl"
+  ],
+  "devDependencies": {
+    "tree-sitter-cli": "^0.24.7"
+  },
+  "scripts": {
+    "generate": "tree-sitter generate",
+    "test": "tree-sitter test",
+    "test:examples": "./scripts/test-examples.sh"
+  },
+  "tree-sitter": [
+    {
+      "scope": "text.html.puzzle",
+      "injection-regex": "^puzzle$",
+      "file-types": [
+        "pzl"
+      ],
+      "highlights": [
+        "queries/highlights.scm"
+      ],
+      "injections": [
+        "queries/injections.scm"
+      ]
+    }
+  ]
+}

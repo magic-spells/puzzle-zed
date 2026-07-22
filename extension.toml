@@ -1,0 +1,11 @@
+id = "puzzle"
+name = "Puzzle"
+description = "Puzzle single-file component language support"
+version = "0.1.0"
+schema_version = 1
+authors = ["Magic Spells"]
+repository = "https://github.com/magic-spells/puzzle-zed"
+
+[grammars.puzzle]
+repository = "file:///Users/coryschulz/Code/@magic-spells/puzzle-zed"
+commit = "5e684adf319f2e83ca45e329a77b86e68dba4f1f"

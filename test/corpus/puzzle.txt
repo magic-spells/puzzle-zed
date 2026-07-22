@@ -1,0 +1,514 @@
+==================
+Puzzle SFC sections
+==================
+
+<puzzle-view class="page">
+  <AlbumCard album={ album } @play:once={ play(album) } />
+  <p>{ title | trim | capitalize }</p>
+</puzzle-view>
+
+<puzzle-skeleton min-duration="250">
+  <div class="animate-pulse"></div>
+</puzzle-skeleton>
+
+<scripts lang="ts">
+import { PuzzleView } from '@magic-spells/puzzle';
+
+export default class Album extends PuzzleView {}
+</scripts>
+
+<styles scoped>
+.page { display: grid; }
+</styles>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name)
+      (attribute
+        (normal_attribute
+          (attribute_name)
+          (quoted_attribute_value
+            (attribute_text)))))
+    (text)
+    (self_closing_element
+      (tag_name)
+      (attribute
+        (normal_attribute
+          (attribute_name)
+          (interpolation
+            (expression_content))))
+      (attribute
+        (event_attribute
+          (event_name)))
+      (attribute
+        (normal_attribute
+          (attribute_name)
+          (interpolation
+            (expression_content)))))
+    (text)
+    (element
+      (start_tag
+        (tag_name))
+      (interpolation
+        (expression_content))
+      (end_tag
+        (tag_name)))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text)
+  (skeleton_element
+    (skeleton_start_tag
+      (section_tag_name)
+      (attribute
+        (normal_attribute
+          (attribute_name)
+          (quoted_attribute_value
+            (attribute_text)))))
+    (text)
+    (element
+      (start_tag
+        (tag_name)
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (quoted_attribute_value
+              (attribute_text)))))
+      (end_tag
+        (tag_name)))
+    (text)
+    (skeleton_end_tag
+      (section_tag_name)))
+  (text)
+  (scripts_element
+    (scripts_start_tag
+      (section_tag_name)
+      (attribute
+        (normal_attribute
+          (attribute_name)
+          (quoted_attribute_value
+            (attribute_text)))))
+    (script_content)
+    (scripts_end_tag
+      (section_tag_name)))
+  (text)
+  (styles_element
+    (styles_start_tag
+      (section_tag_name)
+      (attribute
+        (normal_attribute
+          (attribute_name))))
+    (style_content)
+    (styles_end_tag
+      (section_tag_name)))
+  (text))
+
+============================
+Conditionals and case blocks
+============================
+
+<puzzle-view>
+  {#if loading}
+    <p>Loading</p>
+  {:else if album}
+    <p>{ album.title }</p>
+  {:else}
+    <p>Missing</p>
+  {/if}
+
+  {#unless disabled}<button>Play</button>{/unless}
+
+  {#case status}
+    {:when 'ready', 'playing'}<p>Ready</p>
+    {:when 'paused'}<p>Paused</p>
+    {:else}<p>Unknown</p>
+  {/case}
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (if_statement
+      (if_start
+        (directive_name)
+        (expression_content))
+      (text)
+      (element
+        (start_tag
+          (tag_name))
+        (text)
+        (end_tag
+          (tag_name)))
+      (text)
+      (else_if_block
+        (else_if_start
+          (directive_name)
+          (directive_name)
+          (expression_content))
+        (text)
+        (element
+          (start_tag
+            (tag_name))
+          (interpolation
+            (expression_content))
+          (end_tag
+            (tag_name)))
+        (text))
+      (else_block
+        (else_start
+          (directive_name))
+        (text)
+        (element
+          (start_tag
+            (tag_name))
+          (text)
+          (end_tag
+            (tag_name)))
+        (text))
+      (if_end
+        (directive_name)))
+    (text)
+    (unless_statement
+      (unless_start
+        (directive_name)
+        (expression_content))
+      (element
+        (start_tag
+          (tag_name))
+        (text)
+        (end_tag
+          (tag_name)))
+      (unless_end
+        (directive_name)))
+    (text)
+    (case_statement
+      (case_start
+        (directive_name)
+        (expression_content))
+      (when_block
+        (when_start
+          (directive_name)
+          (expression_content))
+        (element
+          (start_tag
+            (tag_name))
+          (text)
+          (end_tag
+            (tag_name)))
+        (text))
+      (when_block
+        (when_start
+          (directive_name)
+          (expression_content))
+        (element
+          (start_tag
+            (tag_name))
+          (text)
+          (end_tag
+            (tag_name)))
+        (text))
+      (case_else_block
+        (else_start
+          (directive_name))
+        (element
+          (start_tag
+            (tag_name))
+          (text)
+          (end_tag
+            (tag_name)))
+        (text))
+      (case_end
+        (directive_name)))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+======================
+Collection and range loops
+======================
+
+<puzzle-view>
+  {#for track in tracks, i}
+    <TrackRow track={ track } position={ i + 1 } @play={ play(track) } />
+  {/for}
+
+  {#for 1...4, n}<span>{ n }</span>{/for}
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (for_statement
+      (for_start
+        (directive_name)
+        (expression_content))
+      (text)
+      (self_closing_element
+        (tag_name)
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (interpolation
+              (expression_content))))
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (interpolation
+              (expression_content))))
+        (attribute
+          (event_attribute
+            (event_name)
+            (interpolation
+              (expression_content)))))
+      (text)
+      (for_end
+        (directive_name)))
+    (text)
+    (for_statement
+      (for_start
+        (directive_name)
+        (expression_content))
+      (element
+        (start_tag
+          (tag_name))
+        (interpolation
+          (expression_content))
+        (end_tag
+          (tag_name)))
+      (for_end
+        (directive_name)))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+====================================
+Inline directives and balanced braces
+====================================
+
+<puzzle-view>
+  <div
+    class="row {#if current}is-current{:else}is-idle{/if}"
+    style="background:{ theme.colors[mode] }"
+    data-value={ format({ title: `Now ${track.title}` }) }>
+    { track.title }
+  </div>
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (element
+      (start_tag
+        (tag_name)
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (quoted_attribute_value
+              (attribute_text)
+              (attribute_if_statement
+                (if_start
+                  (directive_name)
+                  (expression_content))
+                (attribute_text)
+                (attribute_else_block
+                  (else_start
+                    (directive_name))
+                  (attribute_text))
+                (if_end
+                  (directive_name))))))
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (quoted_attribute_value
+              (attribute_text)
+              (interpolation
+                (expression_content)))))
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (interpolation
+              (expression_content)))))
+      (text)
+      (interpolation
+        (expression_content))
+      (text)
+      (end_tag
+        (tag_name)))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================
+Compile-time SVG path
+=====================
+
+<puzzle-view>
+  {#svg './icons/play.svg'}
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (svg_directive
+      (directive_name)
+      (expression_content))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+======================
+Inline template comments
+======================
+
+<puzzle-view>
+  {## a simple note }
+  {## it's fine — apostrophes are plain text }
+  {## outer { user.name } still one comment }
+  {## escaped \} brace does not close }
+  {###x still a comment }
+  <puzzle-skeleton>
+    {## comments work in skeleton bodies }
+  </puzzle-skeleton>
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (inline_comment)
+    (text)
+    (inline_comment)
+    (text)
+    (inline_comment)
+    (text)
+    (inline_comment)
+    (text)
+    (inline_comment)
+    (text)
+    (element
+      (start_tag
+        (tag_name))
+      (text)
+      (inline_comment)
+      (text)
+      (end_tag
+        (tag_name)))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+======================
+Block template comments
+======================
+
+<puzzle-view>
+  {#comment}
+    { interpolation } and {#if broken}{/if} and <!-- html --> and it's raw
+  {/comment}
+
+  {#comment trailing note is ignored}dropped{/ comment }
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (block_comment)
+    (text)
+    (block_comment)
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+======================
+Nested block comments
+======================
+
+<puzzle-view>
+  {#comment} outer {#comment} inner {/comment} still outer {/comment}
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (block_comment)
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+==================================
+Comment keyword boundary (block body)
+==================================
+
+<puzzle-view>
+  {#comment} {#commentary} and {#comment-x} are NOT nested openers {/comment}
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (block_comment)
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+======================
+Comment keyword boundary (standalone)
+:error
+======================
+
+<puzzle-view>{#commentary}x{/if}</puzzle-view>
+
+---
+
+(ERROR)

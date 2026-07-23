@@ -1,13 +1,13 @@
-; JavaScript is the default for <scripts>.
-((scripts_element
-  (scripts_start_tag) @_start
+; JavaScript is the default for <script>.
+((script_element
+  (script_start_tag) @_start
   (script_content) @content)
   (#not-match? @_start "lang\\s*=")
   (#set! language "javascript"))
 
 ; Explicit JavaScript.
-((scripts_element
-  (scripts_start_tag
+((script_element
+  (script_start_tag
     (attribute
       (normal_attribute
         name: (attribute_name) @_name
@@ -19,8 +19,8 @@
   (#set! language "javascript"))
 
 ; TypeScript scripts.
-((scripts_element
-  (scripts_start_tag
+((script_element
+  (script_start_tag
     (attribute
       (normal_attribute
         name: (attribute_name) @_name
@@ -36,7 +36,7 @@
 ((expression_content) @content
   (#set! language "typescript"))
 
-; <styles> is CSS.
-((styles_element
+; <style> is CSS.
+((style_element
   (style_content) @content)
   (#set! language "css"))

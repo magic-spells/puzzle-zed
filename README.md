@@ -6,8 +6,8 @@ standalone Tree-sitter grammar.
 ## Features
 
 - HTML-like highlighting in `<puzzle-view>` and `<puzzle-skeleton>`
-- JavaScript in `<scripts>` and TypeScript in `<scripts lang="ts">`
-- CSS in `<styles>` and `<styles scoped>`
+- JavaScript in `<script>` and TypeScript in `<script lang="ts">`
+- CSS in `<style>` and `<style scoped>`
 - TypeScript-aware highlighting inside Puzzle expressions
 - Puzzle conditionals, case blocks, collection/range loops, and SVG directives
 - Distinct component tags, event/action names, modifiers, and `@` sigils

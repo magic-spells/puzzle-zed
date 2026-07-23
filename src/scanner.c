@@ -376,10 +376,10 @@ bool tree_sitter_puzzle_external_scanner_scan(void *payload, TSLexer *lexer, con
     (void)payload;
 
     if (valid_symbols[SCRIPT_CONTENT]) {
-        return scan_section_content(lexer, "</scripts", SCRIPT_CONTENT);
+        return scan_section_content(lexer, "</script", SCRIPT_CONTENT);
     }
     if (valid_symbols[STYLE_CONTENT]) {
-        return scan_section_content(lexer, "</styles", STYLE_CONTENT);
+        return scan_section_content(lexer, "</style", STYLE_CONTENT);
     }
     if (valid_symbols[EXPRESSION_CONTENT]) {
         return scan_expression_content(lexer);

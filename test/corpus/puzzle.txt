@@ -11,15 +11,15 @@ Puzzle SFC sections
   <div class="animate-pulse"></div>
 </puzzle-skeleton>
 
-<scripts lang="ts">
+<script lang="ts">
 import { PuzzleView } from '@magic-spells/puzzle';
 
 export default class Album extends PuzzleView {}
-</scripts>
+</script>
 
-<styles scoped>
+<style scoped>
 .page { display: grid; }
-</styles>
+</style>
 
 ---
 
@@ -84,8 +84,8 @@ export default class Album extends PuzzleView {}
     (skeleton_end_tag
       (section_tag_name)))
   (text)
-  (scripts_element
-    (scripts_start_tag
+  (script_element
+    (script_start_tag
       (section_tag_name)
       (attribute
         (normal_attribute
@@ -93,17 +93,17 @@ export default class Album extends PuzzleView {}
           (quoted_attribute_value
             (attribute_text)))))
     (script_content)
-    (scripts_end_tag
+    (script_end_tag
       (section_tag_name)))
   (text)
-  (styles_element
-    (styles_start_tag
+  (style_element
+    (style_start_tag
       (section_tag_name)
       (attribute
         (normal_attribute
           (attribute_name))))
     (style_content)
-    (styles_end_tag
+    (style_end_tag
       (section_tag_name)))
   (text))
 

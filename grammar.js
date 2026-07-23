@@ -46,8 +46,8 @@ module.exports = grammar({
     _top_level: $ => choice(
       $.view_element,
       $.skeleton_element,
-      $.scripts_element,
-      $.styles_element,
+      $.script_element,
+      $.style_element,
       $._node,
     ),
 
@@ -105,41 +105,41 @@ module.exports = grammar({
       '>',
     ),
 
-    scripts_element: $ => prec(10, seq(
-      $.scripts_start_tag,
+    script_element: $ => prec(10, seq(
+      $.script_start_tag,
       optional($.script_content),
-      $.scripts_end_tag,
+      $.script_end_tag,
     )),
 
-    scripts_start_tag: $ => seq(
+    script_start_tag: $ => seq(
       '<',
-      alias('scripts', $.section_tag_name),
+      alias('script', $.section_tag_name),
       repeat($.attribute),
       '>',
     ),
 
-    scripts_end_tag: $ => seq(
+    script_end_tag: $ => seq(
       '</',
-      alias('scripts', $.section_tag_name),
+      alias('script', $.section_tag_name),
       '>',
     ),
 
-    styles_element: $ => prec(10, seq(
-      $.styles_start_tag,
+    style_element: $ => prec(10, seq(
+      $.style_start_tag,
       optional($.style_content),
-      $.styles_end_tag,
+      $.style_end_tag,
     )),
 
-    styles_start_tag: $ => seq(
+    style_start_tag: $ => seq(
       '<',
-      alias('styles', $.section_tag_name),
+      alias('style', $.section_tag_name),
       repeat($.attribute),
       '>',
     ),
 
-    styles_end_tag: $ => seq(
+    style_end_tag: $ => seq(
       '</',
-      alias('styles', $.section_tag_name),
+      alias('style', $.section_tag_name),
       '>',
     ),
 

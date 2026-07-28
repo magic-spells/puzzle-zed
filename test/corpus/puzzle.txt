@@ -512,3 +512,118 @@ Comment keyword boundary (standalone)
 ---
 
 (ERROR)
+
+======================================
+Paired composition markers with fallback bodies
+======================================
+
+<puzzle-view>
+  <Card>
+    <Slot name="header"><h2>{ title | capitalize }</h2></Slot>
+    <Children>{#if empty}<p>none</p>{:else}<ItemCard item={ item }/>{/if}</Children>
+  </Card>
+  <Slot>{ count | number } left{#svg 'icons/empty.svg'}</Slot>
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (element
+      (start_tag
+        name: (tag_name))
+      (text)
+      (element
+        (start_tag
+          name: (tag_name)
+          (attribute
+            (normal_attribute
+              name: (attribute_name)
+              value: (quoted_attribute_value
+                (attribute_text)))))
+        (element
+          (start_tag
+            name: (tag_name))
+          (interpolation
+            value: (expression_content))
+          (end_tag
+            name: (tag_name)))
+        (end_tag
+          name: (tag_name)))
+      (text)
+      (element
+        (start_tag
+          name: (tag_name))
+        (if_statement
+          (if_start
+            (directive_name)
+            condition: (expression_content))
+          (element
+            (start_tag
+              name: (tag_name))
+            (text)
+            (end_tag
+              name: (tag_name)))
+          (else_block
+            (else_start
+              (directive_name))
+            (self_closing_element
+              name: (tag_name)
+              (attribute
+                (normal_attribute
+                  name: (attribute_name)
+                  value: (interpolation
+                    value: (expression_content))))))
+          (if_end
+            (directive_name)))
+        (end_tag
+          name: (tag_name)))
+      (text)
+      (end_tag
+        name: (tag_name)))
+    (text)
+    (element
+      (start_tag
+        name: (tag_name))
+      (interpolation
+        value: (expression_content))
+      (text)
+      (svg_directive
+        (directive_name)
+        path: (expression_content))
+      (end_tag
+        name: (tag_name)))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+Self-closing composition markers still parse
+=====================================
+
+<puzzle-view><Children/><Slot name="footer"/></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (self_closing_element
+      name: (tag_name))
+    (self_closing_element
+      name: (tag_name)
+      (attribute
+        (normal_attribute
+          name: (attribute_name)
+          value: (quoted_attribute_value
+            (attribute_text)))))
+    (view_end_tag
+      (section_tag_name)))
+  (text))

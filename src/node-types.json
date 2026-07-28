@@ -544,7 +544,7 @@
           "named": true
         },
         {
-          "type": "scripts_element",
+          "type": "script_element",
           "named": true
         },
         {
@@ -552,7 +552,7 @@
           "named": true
         },
         {
-          "type": "styles_element",
+          "type": "style_element",
           "named": true
         },
         {
@@ -971,7 +971,7 @@
     }
   },
   {
-    "type": "scripts_element",
+    "type": "script_element",
     "named": true,
     "fields": {},
     "children": {
@@ -983,18 +983,18 @@
           "named": true
         },
         {
-          "type": "scripts_end_tag",
+          "type": "script_end_tag",
           "named": true
         },
         {
-          "type": "scripts_start_tag",
+          "type": "script_start_tag",
           "named": true
         }
       ]
     }
   },
   {
-    "type": "scripts_end_tag",
+    "type": "script_end_tag",
     "named": true,
     "fields": {},
     "children": {
@@ -1009,7 +1009,7 @@
     }
   },
   {
-    "type": "scripts_start_tag",
+    "type": "script_start_tag",
     "named": true,
     "fields": {},
     "children": {
@@ -1137,7 +1137,7 @@
     }
   },
   {
-    "type": "styles_element",
+    "type": "style_element",
     "named": true,
     "fields": {},
     "children": {
@@ -1149,18 +1149,18 @@
           "named": true
         },
         {
-          "type": "styles_end_tag",
+          "type": "style_end_tag",
           "named": true
         },
         {
-          "type": "styles_start_tag",
+          "type": "style_start_tag",
           "named": true
         }
       ]
     }
   },
   {
-    "type": "styles_end_tag",
+    "type": "style_end_tag",
     "named": true,
     "fields": {},
     "children": {
@@ -1175,7 +1175,7 @@
     }
   },
   {
-    "type": "styles_start_tag",
+    "type": "style_start_tag",
     "named": true,
     "fields": {},
     "children": {

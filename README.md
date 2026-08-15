@@ -10,7 +10,13 @@ standalone Tree-sitter grammar.
 - CSS in `<style>` and `<style scoped>`
 - TypeScript-aware highlighting inside Puzzle expressions
 - Puzzle conditionals, case blocks, collection/range loops, and SVG directives
-- Distinct component tags, event/action names, modifiers, and `@` sigils
+- `{#raw}` blocks: structural HTML inside, inert braces, no markers
+- Formatter chains (`{ price | currency('$') }`), told apart from `||` and from
+  a `|` inside a string or a regex literal
+- Composition markers (`<Children>`, `<Slot>`, `<Portal>`) scoped apart from
+  user components, with the lowercase spellings flagged
+- Distinct component tags, event/action names, and `@` sigils, plus the
+  fourteen legal event modifiers scoped apart from unknown ones
 - Bracket matching, auto-indentation, and a component-aware outline
 - Tailwind CSS language-server opt-in for `.pzl` files
 

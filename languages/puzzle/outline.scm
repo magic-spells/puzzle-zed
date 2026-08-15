@@ -4,11 +4,11 @@
 (skeleton_element
   (skeleton_start_tag) @name) @item
 
-(scripts_element
-  (scripts_start_tag) @name) @item
+(script_element
+  (script_start_tag) @name) @item
 
-(styles_element
-  (styles_start_tag) @name) @item
+(style_element
+  (style_start_tag) @name) @item
 
 ((element
   (start_tag
@@ -30,3 +30,6 @@
 
 (for_statement
   (for_start) @name) @item
+
+(raw_block
+  (raw_start) @name) @item

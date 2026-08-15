@@ -1899,6 +1899,10 @@
                       },
                       {
                         "type": "SYMBOL",
+                        "name": "raw_brace_value"
+                      },
+                      {
+                        "type": "SYMBOL",
                         "name": "raw_unquoted_attribute_value"
                       }
                     ]
@@ -2275,6 +2279,10 @@
     {
       "type": "SYMBOL",
       "name": "raw_text"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "raw_brace_value"
     }
   ],
   "inline": [],

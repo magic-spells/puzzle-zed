@@ -1044,6 +1044,10 @@
         "required": false,
         "types": [
           {
+            "type": "raw_brace_value",
+            "named": true
+          },
+          {
             "type": "raw_quoted_attribute_value",
             "named": true
           },
@@ -1874,6 +1878,10 @@
   },
   {
     "type": "raw_attribute_text",
+    "named": true
+  },
+  {
+    "type": "raw_brace_value",
     "named": true
   },
   {

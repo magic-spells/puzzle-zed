@@ -16,6 +16,7 @@ enum TokenType {
     DIRECTIVE_EXPRESSION,
     FORMATTER_ARGUMENT,
     RAW_TEXT,
+    RAW_BRACE_VALUE,
 };
 
 typedef struct {
@@ -193,6 +194,12 @@ typedef enum {
     EXPR_ARG,
 } ExprMode;
 
+// LexSkip's threaded state, carried through every balanced scan in this file.
+typedef struct {
+    bool ends_expr;  // prevEndsExpr: the previous token can END an expression
+    bool after_dot;  // the last significant byte was '.'
+} LexState;
+
 static bool expr_is_ident_start(int32_t c) {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_' || c == '$';
 }
@@ -249,6 +256,107 @@ static void scan_regex_body(TSLexer *lexer) {
     }
 }
 
+// THE shared lexical skip, mirroring parser.LexSkip (lexskip.go). It consumes
+// the opaque lexical unit at the current position — a '…'/"…"/`…` string, a
+// /re/flags regex literal, a // or /* */ comment, an identifier run, or a ++/--
+// update operator — and reports the state that follows it. For any other byte
+// it consumes nothing and returns false: the caller processes that byte itself
+// (depth tracking, terminators) and folds it in with lex_plain.
+//
+// Every balanced scan in this file goes through here. Two divergent skippers is
+// exactly the failure DOC-COMPILER-DESIGN.md §c warns about.
+static bool lex_skip(TSLexer *lexer, LexState *st) {
+    int32_t c = lexer->lookahead;
+
+    if (c == '\'' || c == '"') {
+        scan_quoted_string(lexer, c);
+        st->ends_expr = true;
+        st->after_dot = false;
+        return true;
+    }
+
+    if (c == '`') {
+        scan_template_string(lexer);
+        st->ends_expr = true;
+        st->after_dot = false;
+        return true;
+    }
+
+    if (c == '/') {
+        advance(lexer);
+        if (lexer->lookahead == '*') {
+            scan_block_comment(lexer);  // comments leave the state alone
+            return true;
+        }
+        if (lexer->lookahead == '/') {
+            scan_line_comment(lexer);
+            return true;
+        }
+        if (!st->ends_expr) {
+            scan_regex_body(lexer);
+            st->ends_expr = true;
+        } else {
+            st->ends_expr = false;  // division
+        }
+        st->after_dot = false;
+        return true;
+    }
+
+    if (expr_is_ident_start(c)) {
+        char buf[16];
+        size_t n = 0;
+        bool overflow = false;
+        bool after_dot = st->after_dot;
+        while (expr_is_ident_char(lexer->lookahead)) {
+            if (n < sizeof(buf) - 1) {
+                buf[n++] = (char)lexer->lookahead;
+            } else {
+                overflow = true;
+            }
+            advance(lexer);
+        }
+        buf[n] = '\0';
+        // A keyword used as a property name (`.return`) still ends an
+        // expression; a bare keyword does not. An identifier too long to be any
+        // keyword obviously ends one.
+        st->ends_expr = after_dot || overflow || !expr_is_regex_preceding_keyword(buf);
+        st->after_dot = false;
+        return true;
+    }
+
+    if (c == '+' || c == '-') {
+        advance(lexer);
+        st->after_dot = false;
+        if (lexer->lookahead == c) {
+            advance(lexer);  // ++ / -- preserve the incoming state
+            return true;
+        }
+        st->ends_expr = false;
+        return true;
+    }
+
+    if (c == '\\') {
+        // Not in LexSkip (a stray backslash is a JS syntax error), but skipping
+        // the escaped byte keeps malformed input from derailing the scan.
+        advance(lexer);
+        if (!lexer->eof(lexer)) advance(lexer);
+        st->ends_expr = false;
+        st->after_dot = false;
+        return true;
+    }
+
+    return false;
+}
+
+// Fold one plain byte — one lex_skip did NOT consume — into the state.
+// Mirrors LexPlainEndsExpr: a digit or a closing )/]/} ends an expression,
+// whitespace is insignificant, everything else means the next '/' opens a regex.
+static void lex_plain(LexState *st, int32_t c) {
+    if (iswspace(c)) return;
+    st->after_dot = (c == '.');
+    st->ends_expr = (c == ')' || c == ']' || c == '}' || (c >= '0' && c <= '9'));
+}
+
 // The exact closer allowlist. '{/' plus one of these plus '}' is a block
 // closer, never an expression.
 static bool is_closer_keyword(const char *word) {
@@ -262,8 +370,7 @@ static bool is_closer_keyword(const char *word) {
 static bool scan_expression(TSLexer *lexer, ExprMode mode, enum TokenType symbol) {
     bool advanced = false;
     int depth = 0;
-    bool prev_ends_expr = false;  // LexSkip's prevEndsExpr
-    bool prev_dot = false;        // last significant byte was '.'
+    LexState st = {false, false};
 
     while (iswspace(lexer->lookahead)) skip(lexer);
 
@@ -309,178 +416,137 @@ static bool scan_expression(TSLexer *lexer, ExprMode mode, enum TokenType symbol
         }
         scan_regex_body(lexer);
         advanced = true;
-        prev_ends_expr = true;
+        st.ends_expr = true;
     }
 
     while (!lexer->eof(lexer)) {
         int32_t c = lexer->lookahead;
 
-        if (iswspace(c)) {  // insignificant: leaves both states alone
-            advance(lexer);
-            advanced = true;
-            continue;
-        }
-
-        if (c == '\'' || c == '"') {
-            scan_quoted_string(lexer, c);
-            advanced = true;
-            prev_ends_expr = true;
-            prev_dot = false;
-            continue;
-        }
-
-        if (c == '`') {
-            scan_template_string(lexer);
-            advanced = true;
-            prev_ends_expr = true;
-            prev_dot = false;
-            continue;
-        }
-
-        if (c == '/') {
-            if (!prev_ends_expr) {
-                // Could still be a comment; peek past the slash.
-                advance(lexer);
-                advanced = true;
-                if (lexer->lookahead == '*') {
-                    scan_block_comment(lexer);
-                    continue;  // comments leave prev_ends_expr alone
-                }
-                if (lexer->lookahead == '/') {
-                    scan_line_comment(lexer);
-                    continue;
-                }
-                scan_regex_body(lexer);
-                prev_ends_expr = true;
-                prev_dot = false;
-                continue;
-            }
-            advance(lexer);
-            advanced = true;
-            if (lexer->lookahead == '*') {
-                scan_block_comment(lexer);
-                continue;
-            }
-            if (lexer->lookahead == '/') {
-                scan_line_comment(lexer);
-                continue;
-            }
-            prev_ends_expr = false;  // division
-            prev_dot = false;
-            continue;
-        }
-
-        if (expr_is_ident_start(c)) {
-            char buf[16];
-            size_t n = 0;
-            bool overflow = false;
-            bool after_dot = prev_dot;
-            while (expr_is_ident_char(lexer->lookahead)) {
-                if (n < sizeof(buf) - 1) {
-                    buf[n++] = (char)lexer->lookahead;
-                } else {
-                    overflow = true;
-                }
-                advance(lexer);
-            }
-            buf[n] = '\0';
-            advanced = true;
-            // A keyword used as a property name (`.return`) still ends an
-            // expression; a bare keyword does not.
-            prev_ends_expr = after_dot || overflow || !expr_is_regex_preceding_keyword(buf);
-            prev_dot = false;
-            continue;
-        }
-
-        if (c == '+' || c == '-') {
-            advance(lexer);
-            advanced = true;
-            prev_dot = false;
-            if (lexer->lookahead == c) {
-                advance(lexer);  // ++ / -- preserve the incoming state
-                continue;
-            }
-            prev_ends_expr = false;
-            continue;
-        }
-
-        if (c == '(' || c == '[' || c == '{') {
-            depth++;
-            advance(lexer);
-            advanced = true;
-            prev_ends_expr = false;
-            prev_dot = false;
-            continue;
-        }
-
-        if (c == '}') {
-            if (depth == 0) {
-                lexer->mark_end(lexer);
-                return advanced;
-            }
-            depth--;
-            advance(lexer);
-            advanced = true;
-            prev_ends_expr = true;
-            prev_dot = false;
-            continue;
-        }
-
-        if (c == ')') {
-            if (depth == 0 && mode == EXPR_ARG) {
-                lexer->mark_end(lexer);
-                return advanced;
-            }
-            if (depth > 0) depth--;
-            advance(lexer);
-            advanced = true;
-            prev_ends_expr = true;
-            prev_dot = false;
-            continue;
-        }
-
-        if (c == ']') {
-            if (depth > 0) depth--;
-            advance(lexer);
-            advanced = true;
-            prev_ends_expr = true;
-            prev_dot = false;
-            continue;
-        }
-
-        if (c == ',' && depth == 0 && mode == EXPR_ARG) {
+        // Terminators are checked before the skip so they can never be consumed
+        // as part of an opaque unit.
+        if (c == '}' && depth == 0) {
             lexer->mark_end(lexer);
             return advanced;
         }
-
-        if (c == '|' && depth == 0 && mode == EXPR_INTERP) {
+        if (mode == EXPR_ARG && depth == 0 && (c == ')' || c == ',')) {
+            lexer->mark_end(lexer);
+            return advanced;
+        }
+        if (mode == EXPR_INTERP && depth == 0 && c == '|') {
             lexer->mark_end(lexer);  // a single '|' ends the expression here
             advance(lexer);
             if (lexer->lookahead == '|') {
                 while (lexer->lookahead == '|') advance(lexer);  // logical OR
                 advanced = true;
-                prev_ends_expr = false;
-                prev_dot = false;
+                st.ends_expr = false;
+                st.after_dot = false;
                 continue;
             }
             return advanced;
         }
 
-        if (c == '\\') {
-            advance(lexer);
-            if (!lexer->eof(lexer)) advance(lexer);
+        if (lex_skip(lexer, &st)) {
             advanced = true;
-            prev_ends_expr = false;
-            prev_dot = false;
+            continue;
+        }
+
+        if (c == '(' || c == '[' || c == '{') {
+            depth++;
+        } else if (c == ')' || c == ']' || c == '}') {
+            if (depth > 0) depth--;
+        }
+        advance(lexer);
+        advanced = true;
+        lex_plain(&st, c);
+    }
+    return false;
+}
+
+// A brace-delimited attribute value inside a {#raw} body (D150). The bytes are
+// literal — braces included — but finding where the value ENDS is the one thing
+// a raw block cannot do byte-naively, so this mirrors parser.scanBraceGroup
+// (scan.go) through the same lex_skip: a '}' inside a string, template literal,
+// regex literal, or comment does NOT close the group, and nested braces count.
+// Without that, `data-json={ {"text": "}"} }` is cut short at the brace inside
+// the string and the remaining bytes derail the tag.
+static bool scan_raw_brace_value(TSLexer *lexer) {
+    if (lexer->lookahead != '{') return false;
+    advance(lexer);
+
+    int depth = 1;
+    LexState st = {false, false};
+    bool first = true;
+
+    while (!lexer->eof(lexer)) {
+        int32_t c = lexer->lookahead;
+
+        // scanBraceGroup treats a '/' immediately after the opening brace as
+        // structural only for a complete, known block closer ({/if}, {/for}, …).
+        // Every other slash there may open a regex literal, including the
+        // no-space `{/}/.test(x)}`.
+        if (first) {
+            first = false;
+            if (c == '/') {
+                advance(lexer);
+                if (lexer->lookahead == '*') {
+                    scan_block_comment(lexer);
+                    continue;
+                }
+                if (lexer->lookahead == '/') {
+                    scan_line_comment(lexer);
+                    continue;
+                }
+                char kwbuf[16];
+                size_t kn = 0;
+                while (((lexer->lookahead >= 'a' && lexer->lookahead <= 'z') ||
+                        (lexer->lookahead >= 'A' && lexer->lookahead <= 'Z')) &&
+                       kn < sizeof(kwbuf) - 1) {
+                    kwbuf[kn++] = (char)lexer->lookahead;
+                    advance(lexer);
+                }
+                kwbuf[kn] = '\0';
+                if (is_closer_keyword(kwbuf)) {
+                    while (iswspace(lexer->lookahead)) advance(lexer);
+                    if (lexer->lookahead == '}') {
+                        // A block closer: let the loop's '}' branch end it.
+                        st.ends_expr = true;
+                        st.after_dot = false;
+                        continue;
+                    }
+                }
+                // Not a closer, so the '/' opened a regex and the bytes read
+                // while checking are the first bytes of its body.
+                scan_regex_body(lexer);
+                st.ends_expr = true;
+                st.after_dot = false;
+                continue;
+            }
+        }
+
+        if (lex_skip(lexer, &st)) continue;
+
+        if (c == '{') {
+            depth++;
+            advance(lexer);
+            lex_plain(&st, c);
+            continue;
+        }
+        if (c == '}') {
+            depth--;
+            advance(lexer);
+            if (depth == 0) {
+                lexer->mark_end(lexer);
+                lexer->result_symbol = RAW_BRACE_VALUE;
+                return true;
+            }
+            lex_plain(&st, c);
             continue;
         }
 
         advance(lexer);
-        advanced = true;
-        prev_dot = (c == '.');
-        prev_ends_expr = (c >= '0' && c <= '9');
+        lex_plain(&st, c);
     }
-    return false;
+    return false;  // unclosed
 }
 
 static bool matches_delimiter_char(int32_t lookahead, char expected) {
@@ -693,6 +759,12 @@ bool tree_sitter_puzzle_external_scanner_scan(void *payload, TSLexer *lexer, con
     }
     if (valid_symbols[EXPRESSION_CONTENT]) {
         return scan_expression(lexer, EXPR_INTERP, EXPRESSION_CONTENT);
+    }
+    // Deliberately after EXPRESSION_CONTENT: the two are never both valid in a
+    // real parse state, so this only ever fires inside a raw start tag, and
+    // error recovery (where every symbol is valid) keeps its old behaviour.
+    if (valid_symbols[RAW_BRACE_VALUE] && lexer->lookahead == '{') {
+        return scan_raw_brace_value(lexer);
     }
     if ((valid_symbols[INLINE_COMMENT] || valid_symbols[BLOCK_COMMENT]) &&
         lexer->lookahead == '{') {

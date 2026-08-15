@@ -838,7 +838,7 @@ Raw block markers and directive attributes are literal
         (raw_tag_name)
         (raw_attribute
           (raw_attribute_name)
-          (raw_unquoted_attribute_value))
+          (raw_brace_value))
         (raw_attribute
           (raw_attribute_name)
           (raw_quoted_attribute_value
@@ -849,9 +849,137 @@ Raw block markers and directive attributes are literal
           (raw_attribute_name))
         (raw_attribute
           (raw_attribute_name)
-          (raw_unquoted_attribute_value)))
+          (raw_brace_value)))
       (raw_void_element
         (void_tag_name))
+      (raw_end
+        (directive_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+Raw brace-valued attribute with whitespace
+=====================================
+
+<puzzle-view>{#raw}<b k={ a }>x</b>{/raw}</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (raw_block
+      (raw_start
+        (directive_name))
+      (raw_element
+        (raw_start_tag
+          (raw_tag_name)
+          (raw_attribute
+            (raw_attribute_name)
+            (raw_brace_value)))
+        (raw_text)
+        (raw_end_tag
+          (raw_tag_name)))
+      (raw_end
+        (directive_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+Raw brace-valued attribute with a nested object literal
+=====================================
+
+<puzzle-view>{#raw}<b data-json={ {"x": 1} }>hi { name }</b>{/ raw }</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (raw_block
+      (raw_start
+        (directive_name))
+      (raw_element
+        (raw_start_tag
+          (raw_tag_name)
+          (raw_attribute
+            (raw_attribute_name)
+            (raw_brace_value)))
+        (raw_text)
+        (raw_end_tag
+          (raw_tag_name)))
+      (raw_end
+        (directive_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+Raw brace-valued attribute is not closed by a brace inside a string
+=====================================
+
+<puzzle-view>{#raw}<b d={ {"t": "}"} }>x</b>{/raw}</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (raw_block
+      (raw_start
+        (directive_name))
+      (raw_element
+        (raw_start_tag
+          (raw_tag_name)
+          (raw_attribute
+            (raw_attribute_name)
+            (raw_brace_value)))
+        (raw_text)
+        (raw_end_tag
+          (raw_tag_name)))
+      (raw_end
+        (directive_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+Raw brace-valued attribute is not closed by a brace inside a regex
+=====================================
+
+<puzzle-view>{#raw}<b d={/}/.test(s)} e="1">x</b>{/raw}</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (raw_block
+      (raw_start
+        (directive_name))
+      (raw_element
+        (raw_start_tag
+          (raw_tag_name)
+          (raw_attribute
+            (raw_attribute_name)
+            (raw_brace_value))
+          (raw_attribute
+            (raw_attribute_name)
+            (raw_quoted_attribute_value
+              (raw_attribute_text))))
+        (raw_text)
+        (raw_end_tag
+          (raw_tag_name)))
       (raw_end
         (directive_name)))
     (view_end_tag

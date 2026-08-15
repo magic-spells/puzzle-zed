@@ -40,6 +40,11 @@ module.exports = grammar({
     $.formatter_argument,
     // Literal text inside {#raw} … {/raw} (D150).
     $.raw_text,
+    // A brace-delimited attribute value inside a raw body. Its bytes are
+    // literal, but its END is found with the same JS-aware balanced scan the
+    // compiler uses, so a '}' inside a string, regex or comment does not close
+    // it.
+    $.raw_brace_value,
   ],
 
   extras: $ => [
@@ -535,6 +540,7 @@ module.exports = grammar({
         '=',
         field('value', choice(
           $.raw_quoted_attribute_value,
+          $.raw_brace_value,
           $.raw_unquoted_attribute_value,
         )),
       )),

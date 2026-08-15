@@ -60,6 +60,7 @@
 (raw_attribute_name) @attribute
 (raw_attribute_text) @string
 (raw_unquoted_attribute_value) @string
+(raw_brace_value) @string
 (raw_opener_rest) @comment
 
 [

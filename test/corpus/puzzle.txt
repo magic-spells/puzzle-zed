@@ -985,3 +985,53 @@ Raw brace-valued attribute is not closed by a brace inside a regex
     (view_end_tag
       (section_tag_name)))
   (text))
+
+==========================================
+Dotted component tags (component families)
+==========================================
+
+<puzzle-view>
+  <Frame.Wrapper class="dotted">
+    <Frame.Content>{ title }</Frame.Content>
+    <Frame.Inner.Deep/>
+  </Frame.Wrapper>
+  <Slot.Custom/>
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (element
+      (start_tag
+        name: (tag_name)
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (quoted_attribute_value
+              (attribute_text)))))
+      (text)
+      (element
+        (start_tag
+          name: (tag_name))
+        (interpolation
+          value: (expression_content))
+        (end_tag
+          name: (tag_name)))
+      (text)
+      (self_closing_element
+        name: (tag_name))
+      (text)
+      (end_tag
+        name: (tag_name)))
+    (text)
+    (self_closing_element
+      name: (tag_name))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))

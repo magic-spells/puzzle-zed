@@ -15,7 +15,8 @@ standalone Tree-sitter grammar.
   a `|` inside a string or a regex literal
 - Composition markers (`<Children>`, `<Slot>`, `<Portal>`) scoped apart from
   user components, with the lowercase spellings flagged
-- Distinct component tags, event/action names, and `@` sigils, plus the
+- Distinct component tags — including dotted component-family member paths
+  such as `<Frame.Wrapper>` (D167) — event/action names, and `@` sigils, plus the
   fourteen legal event modifiers scoped apart from unknown ones
 - Bracket matching, auto-indentation, and a component-aware outline
 - Tailwind CSS language-server opt-in for `.pzl` files

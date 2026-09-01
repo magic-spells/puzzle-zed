@@ -38,6 +38,10 @@
   (#match? @tag "^[a-z]")
   (#not-match? @tag "^(children|slot|portal)$"))
 
+; A capitalized tag name is a component. The name may be a dotted member path
+; — <Frame.Wrapper>, a component-family member (D167) — which `tag_name`
+; already accepts; the marker predicates above are anchored, so a dotted root
+; like <Slot.Custom> lands here rather than reading as a marker.
 ((tag_name) @tag @type
   (#match? @type "^[A-Z]")
   (#not-match? @type "^(Children|Slot|Portal)$"))

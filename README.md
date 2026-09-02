@@ -13,8 +13,8 @@ standalone Tree-sitter grammar.
 - `{#raw}` blocks: structural HTML inside, inert braces, no markers
 - Formatter chains (`{ price | currency('$') }`), told apart from `||` and from
   a `|` inside a string or a regex literal
-- Composition markers (`<Children>`, `<Slot>`, `<Portal>`) scoped apart from
-  user components, with the lowercase spellings flagged
+- Composition markers (`<Children>`, `<Slot>`, `<Portal>`, `<Snippet>`) scoped
+  apart from user components, with the lowercase spellings flagged
 - Distinct component tags — including dotted component-family member paths
   such as `<Frame.Wrapper>` (D167) — event/action names, and `@` sigils, plus the
   fourteen legal event modifiers scoped apart from unknown ones

@@ -9,28 +9,30 @@
 (section_tag_name) @tag @keyword
 
 ; Composition markers are framework syntax, not user components: <Children>,
-; <Slot name="x">, the bare <Slot> router outlet, and <Portal>. Every pattern
-; in this block is mutually exclusive with every other, so no node ever picks
-; up two captures and the order does not matter.
+; <Slot name="x">, the bare <Slot> router outlet, <Portal>, and the caller-side
+; <Snippet> (D166). Every pattern in this block is mutually exclusive with every
+; other, so no node ever picks up two captures and the order does not matter.
 ((start_tag
   name: (tag_name) @tag @keyword)
-  (#match? @keyword "^(Children|Slot|Portal)$"))
+  (#match? @keyword "^(Children|Slot|Portal|Snippet)$"))
 
 ((end_tag
   name: (tag_name) @tag @keyword)
-  (#match? @keyword "^(Children|Slot|Portal)$"))
+  (#match? @keyword "^(Children|Slot|Portal|Snippet)$"))
 
-; <Children/> and <Slot/> are self-closing; <Portal> is paired-only.
+; <Children/> and <Slot/> are self-closing; <Portal> and <Snippet> are
+; paired-only, so a self-closing spelling of either is a compile error.
 ((self_closing_element
   name: (tag_name) @tag @keyword)
   (#match? @keyword "^(Children|Slot)$"))
 
 ((self_closing_element
   name: (tag_name) @tag @error)
-  (#eq? @error "Portal"))
+  (#match? @error "^(Portal|Snippet)$"))
 
 ; A lowercase <slot>/<children>/<portal> is a compile error steering to the
-; capitalized form (D134).
+; capitalized form (D134). <snippet> is deliberately absent: it only steers when
+; it carries a `fits` attribute (D166), so on its own it stays ordinary HTML.
 ((tag_name) @tag @error
   (#match? @error "^(children|slot|portal)$"))
 
@@ -44,7 +46,7 @@
 ; like <Slot.Custom> lands here rather than reading as a marker.
 ((tag_name) @tag @type
   (#match? @type "^[A-Z]")
-  (#not-match? @type "^(Children|Slot|Portal)$"))
+  (#not-match? @type "^(Children|Slot|Portal|Snippet)$"))
 
 (void_tag_name) @tag
 (attribute_name) @attribute

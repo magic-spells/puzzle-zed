@@ -1035,3 +1035,66 @@ Dotted component tags (component families)
     (view_end_tag
       (section_tag_name)))
   (text))
+
+=====================================
+Snippet marker with bare parameters
+=====================================
+
+<puzzle-view><UserList users={ users }><Snippet fits="row" user group>{ user.name }</Snippet></UserList><Slot name="row" user={ u }>none</Slot><Snippet/></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        name: (tag_name)
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (interpolation
+              value: (expression_content)))))
+      (element
+        (start_tag
+          name: (tag_name)
+          (attribute
+            (normal_attribute
+              name: (attribute_name)
+              value: (quoted_attribute_value
+                (attribute_text))))
+          (attribute
+            (normal_attribute
+              name: (attribute_name)))
+          (attribute
+            (normal_attribute
+              name: (attribute_name))))
+        (interpolation
+          value: (expression_content))
+        (end_tag
+          name: (tag_name)))
+      (end_tag
+        name: (tag_name)))
+    (element
+      (start_tag
+        name: (tag_name)
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (quoted_attribute_value
+              (attribute_text))))
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (interpolation
+              value: (expression_content)))))
+      (text)
+      (end_tag
+        name: (tag_name)))
+    (self_closing_element
+      name: (tag_name))
+    (view_end_tag
+      (section_tag_name)))
+  (text))

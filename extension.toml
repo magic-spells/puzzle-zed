@@ -7,5 +7,5 @@ authors = ["Magic Spells"]
 repository = "https://github.com/magic-spells/puzzle-zed"
 
 [grammars.puzzle]
-repository = "file:///Users/coryschulz/Code/@magic-spells/puzzle-zed"
-commit = "510a1f91da3eb80df7d422dc59a3a23da3561084"
+repository = "file:///Users/coryschulz/Code/@magic-spells/puzzle/puzzle-zed"
+commit = "3968c3f32c01450f19f65e1a4813b91a6a3ed80a"

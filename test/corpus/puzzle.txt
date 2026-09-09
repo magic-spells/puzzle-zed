@@ -43,10 +43,8 @@ export default class Album extends PuzzleView {}
             (expression_content))))
       (attribute
         (event_attribute
-          (event_name)))
-      (attribute
-        (normal_attribute
-          (attribute_name)
+          (event_name)
+          (event_modifier)
           (interpolation
             (expression_content)))))
     (text)
@@ -54,7 +52,11 @@ export default class Album extends PuzzleView {}
       (start_tag
         (tag_name))
       (interpolation
-        (expression_content))
+        (expression_content)
+        (formatter
+          (formatter_name))
+        (formatter
+          (formatter_name)))
       (end_tag
         (tag_name)))
     (text)
@@ -549,7 +551,9 @@ Paired composition markers with fallback bodies
           (start_tag
             name: (tag_name))
           (interpolation
-            value: (expression_content))
+            value: (expression_content)
+            (formatter
+              name: (formatter_name)))
           (end_tag
             name: (tag_name)))
         (end_tag
@@ -590,7 +594,9 @@ Paired composition markers with fallback bodies
       (start_tag
         name: (tag_name))
       (interpolation
-        value: (expression_content))
+        value: (expression_content)
+        (formatter
+          name: (formatter_name)))
       (text)
       (svg_directive
         (directive_name)
@@ -624,6 +630,726 @@ Self-closing composition markers still parse
           name: (attribute_name)
           value: (quoted_attribute_value
             (attribute_text)))))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+Paired Portal marker
+=====================================
+
+<puzzle-view><Portal><div>Overlay</div></Portal></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        (tag_name))
+      (element
+        (start_tag
+          (tag_name))
+        (text)
+        (end_tag
+          (tag_name)))
+      (end_tag
+        (tag_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+Formatter pipes and their arguments
+=====================================
+
+<puzzle-view>{ price | currency('$', 2) | upper }</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (interpolation
+      (expression_content)
+      (formatter
+        (formatter_name)
+        (formatter_arguments
+          (expression_content)
+          (expression_content)))
+      (formatter
+        (formatter_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+Pipes that are not formatters
+=====================================
+
+<puzzle-view>{ a || b }{ tags.join('|') }{ s.replace(/a|b/g, '-') }</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (interpolation
+      (expression_content))
+    (interpolation
+      (expression_content))
+    (interpolation
+      (expression_content))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+Raw block keeps HTML structural
+=====================================
+
+<puzzle-view>{#raw}<b>bold</b>{/raw}</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (raw_block
+      (raw_start
+        (directive_name))
+      (raw_element
+        (raw_start_tag
+          (raw_tag_name))
+        (raw_text)
+        (raw_end_tag
+          (raw_tag_name)))
+      (raw_end
+        (directive_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+Raw block opener content is ignored
+=====================================
+
+<puzzle-view>{#raw json}{ "a": 1 }{/raw}</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (raw_block
+      (raw_start
+        (directive_name)
+        (raw_opener_rest))
+      (raw_text)
+      (raw_end
+        (directive_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+Raw block closer tolerates whitespace and does not nest
+=====================================
+
+<puzzle-view>{#raw}outer {#raw} inner{/ raw } tail</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (raw_block
+      (raw_start
+        (directive_name))
+      (raw_text)
+      (raw_end
+        (directive_name)))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+Raw block braces are inert
+=====================================
+
+<puzzle-view>{#raw}{ nope } {#if x}{/if} {## note} \{ }{/raw}</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (raw_block
+      (raw_start
+        (directive_name))
+      (raw_text)
+      (raw_end
+        (directive_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+Raw block markers and directive attributes are literal
+=====================================
+
+<puzzle-view>{#raw}<Slot/><Portal>x</Portal><Card key={a} ref="r" island flip @click:prevent={go}/><br>{/raw}</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (raw_block
+      (raw_start
+        (directive_name))
+      (raw_self_closing_element
+        (raw_tag_name))
+      (raw_element
+        (raw_start_tag
+          (raw_tag_name))
+        (raw_text)
+        (raw_end_tag
+          (raw_tag_name)))
+      (raw_self_closing_element
+        (raw_tag_name)
+        (raw_attribute
+          (raw_attribute_name)
+          (raw_brace_value))
+        (raw_attribute
+          (raw_attribute_name)
+          (raw_quoted_attribute_value
+            (raw_attribute_text)))
+        (raw_attribute
+          (raw_attribute_name))
+        (raw_attribute
+          (raw_attribute_name))
+        (raw_attribute
+          (raw_attribute_name)
+          (raw_brace_value)))
+      (raw_void_element
+        (void_tag_name))
+      (raw_end
+        (directive_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+Raw brace-valued attribute with whitespace
+=====================================
+
+<puzzle-view>{#raw}<b k={ a }>x</b>{/raw}</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (raw_block
+      (raw_start
+        (directive_name))
+      (raw_element
+        (raw_start_tag
+          (raw_tag_name)
+          (raw_attribute
+            (raw_attribute_name)
+            (raw_brace_value)))
+        (raw_text)
+        (raw_end_tag
+          (raw_tag_name)))
+      (raw_end
+        (directive_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+Raw brace-valued attribute with a nested object literal
+=====================================
+
+<puzzle-view>{#raw}<b data-json={ {"x": 1} }>hi { name }</b>{/ raw }</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (raw_block
+      (raw_start
+        (directive_name))
+      (raw_element
+        (raw_start_tag
+          (raw_tag_name)
+          (raw_attribute
+            (raw_attribute_name)
+            (raw_brace_value)))
+        (raw_text)
+        (raw_end_tag
+          (raw_tag_name)))
+      (raw_end
+        (directive_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+Raw brace-valued attribute is not closed by a brace inside a string
+=====================================
+
+<puzzle-view>{#raw}<b d={ {"t": "}"} }>x</b>{/raw}</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (raw_block
+      (raw_start
+        (directive_name))
+      (raw_element
+        (raw_start_tag
+          (raw_tag_name)
+          (raw_attribute
+            (raw_attribute_name)
+            (raw_brace_value)))
+        (raw_text)
+        (raw_end_tag
+          (raw_tag_name)))
+      (raw_end
+        (directive_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+Raw brace-valued attribute is not closed by a brace inside a regex
+=====================================
+
+<puzzle-view>{#raw}<b d={/}/.test(s)} e="1">x</b>{/raw}</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (raw_block
+      (raw_start
+        (directive_name))
+      (raw_element
+        (raw_start_tag
+          (raw_tag_name)
+          (raw_attribute
+            (raw_attribute_name)
+            (raw_brace_value))
+          (raw_attribute
+            (raw_attribute_name)
+            (raw_quoted_attribute_value
+              (raw_attribute_text))))
+        (raw_text)
+        (raw_end_tag
+          (raw_tag_name)))
+      (raw_end
+        (directive_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+==========================================
+Dotted component tags (component families)
+==========================================
+
+<puzzle-view>
+  <Frame.Wrapper class="dotted">
+    <Frame.Content>{ title }</Frame.Content>
+    <Frame.Inner.Deep/>
+  </Frame.Wrapper>
+  <Slot.Custom/>
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (element
+      (start_tag
+        name: (tag_name)
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (quoted_attribute_value
+              (attribute_text)))))
+      (text)
+      (element
+        (start_tag
+          name: (tag_name))
+        (interpolation
+          value: (expression_content))
+        (end_tag
+          name: (tag_name)))
+      (text)
+      (self_closing_element
+        name: (tag_name))
+      (text)
+      (end_tag
+        name: (tag_name)))
+    (text)
+    (self_closing_element
+      name: (tag_name))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+Snippet marker with bare parameters
+=====================================
+
+<puzzle-view><UserList users={ users }><Snippet fits="row" user group>{ user.name }</Snippet></UserList><Slot name="row" user={ u }>none</Slot><Snippet/></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        name: (tag_name)
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (interpolation
+              value: (expression_content)))))
+      (element
+        (start_tag
+          name: (tag_name)
+          (attribute
+            (normal_attribute
+              name: (attribute_name)
+              value: (quoted_attribute_value
+                (attribute_text))))
+          (attribute
+            (normal_attribute
+              name: (attribute_name)))
+          (attribute
+            (normal_attribute
+              name: (attribute_name))))
+        (interpolation
+          value: (expression_content))
+        (end_tag
+          name: (tag_name)))
+      (end_tag
+        name: (tag_name)))
+    (element
+      (start_tag
+        name: (tag_name)
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (quoted_attribute_value
+              (attribute_text))))
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (interpolation
+              value: (expression_content)))))
+      (text)
+      (end_tag
+        name: (tag_name)))
+    (self_closing_element
+      name: (tag_name))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+==========================================
+Escaped braces are literal text
+==========================================
+
+<puzzle-view><p>a \{ not an interpolation \} b</p><p>lone } brace, C:\Users\me</p></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        name: (tag_name))
+      (text)
+      (escaped_brace)
+      (text)
+      (escaped_brace)
+      (text)
+      (end_tag
+        name: (tag_name)))
+    (element
+      (start_tag
+        name: (tag_name))
+      (text)
+      (end_tag
+        name: (tag_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+==========================================
+Escaped braces beside a real interpolation
+==========================================
+
+<puzzle-view><p>\{ literal \} { real } \{</p></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        name: (tag_name))
+      (escaped_brace)
+      (text)
+      (escaped_brace)
+      (text)
+      (interpolation
+        value: (expression_content))
+      (escaped_brace)
+      (end_tag
+        name: (tag_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+==========================================
+Escaped braces inside a quoted attribute value
+==========================================
+
+<puzzle-view><p title="a \{ b \} c" data-x=a\{b>x</p></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        name: (tag_name)
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (quoted_attribute_value
+              (attribute_text)
+              (escaped_brace)
+              (attribute_text)
+              (escaped_brace)
+              (attribute_text))))
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (unquoted_attribute_value))))
+      (text)
+      (end_tag
+        name: (tag_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+==========================================
+Escaped braces stay literal inside a raw body
+==========================================
+
+<puzzle-view>{#raw}a \{ b \} }{/raw}</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (raw_block
+      (raw_start
+        (directive_name))
+      (raw_text)
+      (raw_end
+        (directive_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+==========================================
+Snippet parameters and marker arguments
+==========================================
+
+<puzzle-view><UserList users={ users }><Snippet user><b>{ user.name }</b></Snippet></UserList><GroupedList><Snippet fits="row" user group>x</Snippet></GroupedList><Children user={ user }>fallback</Children><Slot name="row" user={ user } group={ group }>fallback</Slot></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        name: (tag_name)
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (interpolation
+              value: (expression_content)))))
+      (element
+        (start_tag
+          name: (tag_name)
+          (attribute
+            (normal_attribute
+              name: (attribute_name))))
+        (element
+          (start_tag
+            name: (tag_name))
+          (interpolation
+            value: (expression_content))
+          (end_tag
+            name: (tag_name)))
+        (end_tag
+          name: (tag_name)))
+      (end_tag
+        name: (tag_name)))
+    (element
+      (start_tag
+        name: (tag_name))
+      (element
+        (start_tag
+          name: (tag_name)
+          (attribute
+            (normal_attribute
+              name: (attribute_name)
+              value: (quoted_attribute_value
+                (attribute_text))))
+          (attribute
+            (normal_attribute
+              name: (attribute_name)))
+          (attribute
+            (normal_attribute
+              name: (attribute_name))))
+        (text)
+        (end_tag
+          name: (tag_name)))
+      (end_tag
+        name: (tag_name)))
+    (element
+      (start_tag
+        name: (tag_name)
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (interpolation
+              value: (expression_content)))))
+      (text)
+      (end_tag
+        name: (tag_name)))
+    (element
+      (start_tag
+        name: (tag_name)
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (quoted_attribute_value
+              (attribute_text))))
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (interpolation
+              value: (expression_content))))
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (interpolation
+              value: (expression_content)))))
+      (text)
+      (end_tag
+        name: (tag_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+==========================================
+Range loop headers do not error on '...'
+==========================================
+
+<puzzle-view>{#for 1...5}a{/for}{#for i in 1...5}b{/for}{#for 1...5, x}c{/for}</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (for_statement
+      (for_start
+        (directive_name)
+        (expression_content))
+      (text)
+      (for_end
+        (directive_name)))
+    (for_statement
+      (for_start
+        (directive_name)
+        (expression_content))
+      (text)
+      (for_end
+        (directive_name)))
+    (for_statement
+      (for_start
+        (directive_name)
+        (expression_content))
+      (text)
+      (for_end
+        (directive_name)))
     (view_end_tag
       (section_tag_name)))
   (text))

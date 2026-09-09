@@ -30,6 +30,21 @@ module.exports = grammar({
     $.expression_content,
     $.inline_comment,
     $.block_comment,
+    // Directive expressions ({#if …}, {#for …}, {:when …}, {#svg …}) are
+    // aliased to expression_content everywhere they appear. They differ from an
+    // interpolation's expression only in that a top-level '|' is NOT a formatter
+    // pipe there — the compiler splits pipes in interpolations only.
+    $.directive_expression,
+    // One formatter argument, aliased to expression_content so the TypeScript
+    // injection covers it. Stops at a top-level ',' or ')'.
+    $.formatter_argument,
+    // Literal text inside {#raw} … {/raw} (D150).
+    $.raw_text,
+    // A brace-delimited attribute value inside a raw body. Its bytes are
+    // literal, but its END is found with the same JS-aware balanced scan the
+    // compiler uses, so a '}' inside a string, regex or comment does not close
+    // it.
+    $.raw_brace_value,
   ],
 
   extras: $ => [
@@ -60,10 +75,12 @@ module.exports = grammar({
       $.case_statement,
       $.for_statement,
       $.svg_directive,
+      $.raw_block,
       $.interpolation,
       $.void_element,
       $.self_closing_element,
       $.element,
+      $.escaped_brace,
       $.text,
     ),
 
@@ -226,10 +243,20 @@ module.exports = grammar({
       )),
     ),
 
-    attribute_name: _ => /[A-Za-z_:][A-Za-z0-9_.:-]*/,
+    // A leading ':' is deliberately excluded. Tree-sitter's lexer prefers the
+    // longest match, so an attribute name that could start with ':' swallowed
+    // the ':prevent' of '@click:prevent' whole and event modifiers never parsed
+    // at all. Puzzle has no leading-colon attribute names, so dropping ':' from
+    // the first character class is the fix.
+    attribute_name: _ => /[A-Za-z_][A-Za-z0-9_.:-]*/,
     event_name: _ => token.immediate(/[A-Za-z_][A-Za-z0-9_-]*/),
     event_modifier: _ => token.immediate(/[A-Za-z_][A-Za-z0-9_-]*/),
-    unquoted_attribute_value: _ => /[^<>{}"'=\s]+/,
+    // Must not END on '/', or a self-closing '/>' gets swallowed. The '\{'/'\}'
+    // escape reaches an unquoted value too — the compiler routes TokAttrBare
+    // through the same parseAttrParts as a quoted value — but an unquoted value
+    // is one flat token with no room for a child node, so the escape is folded
+    // into the token instead of surfacing as escaped_brace.
+    unquoted_attribute_value: _ => /([^<>{}"'=\s]|\\[{}])*([^<>{}"'=\s/]|\\[{}])/,
 
     quoted_attribute_value: $ => choice(
       seq(
@@ -250,15 +277,47 @@ module.exports = grammar({
       $.attribute_case_statement,
       $.attribute_for_statement,
       $.interpolation,
+      $.escaped_brace,
       $.attribute_text,
     ),
 
-    attribute_text: _ => /[^<>{}"']+/,
+    // Same shape as `text`, plus the enclosing quotes. The compiler routes a
+    // quoted value through parseAttrParts, which applies the very same '\{'/'\}'
+    // escape and treats a lone '}' as literal. A '\' before a quote is NOT an
+    // escape — the quoted-value scan ends the value at the next raw quote byte —
+    // so the backslash-pair alternative excludes them and the lone-'\'
+    // alternative carries the trailing backslash of `class="C:\"`.
+    attribute_text: _ => token(choice(
+      /([^<>{"'\\]|\\[^<>{}"'\\])+/,
+      /\\/,
+    )),
 
+    // { expr }, { expr | formatter }, { expr | formatter(arg, arg) | other }.
+    // The scanner ends expression_content at the first top-level SINGLE '|', so
+    // a logical-OR ('||') and a '|' inside a string or a /a|b/ regex stay part
+    // of the expression.
     interpolation: $ => seq(
       '{',
       field('value', $.expression_content),
+      repeat($.formatter),
       '}',
+    ),
+
+    formatter: $ => seq(
+      '|',
+      field('name', $.formatter_name),
+      optional($.formatter_arguments),
+    ),
+
+    formatter_name: _ => /[A-Za-z_$][A-Za-z0-9_$]*/,
+
+    formatter_arguments: $ => seq(
+      '(',
+      optional(seq(
+        alias($.formatter_argument, $.expression_content),
+        repeat(seq(',', alias($.formatter_argument, $.expression_content))),
+      )),
+      ')',
     ),
 
     if_statement: $ => seq(
@@ -273,7 +332,7 @@ module.exports = grammar({
       '{',
       '#',
       alias(token.immediate('if'), $.directive_name),
-      field('condition', $.expression_content),
+      field('condition', alias($.directive_expression, $.expression_content)),
       '}',
     ),
 
@@ -287,7 +346,7 @@ module.exports = grammar({
       ':',
       alias(token.immediate('else'), $.directive_name),
       alias('if', $.directive_name),
-      field('condition', $.expression_content),
+      field('condition', alias($.directive_expression, $.expression_content)),
       '}',
     ),
 
@@ -306,7 +365,7 @@ module.exports = grammar({
     if_end: $ => seq(
       '{',
       '/',
-      alias(token.immediate('if'), $.directive_name),
+      alias('if', $.directive_name),
       '}',
     ),
 
@@ -321,14 +380,14 @@ module.exports = grammar({
       '{',
       '#',
       alias(token.immediate('unless'), $.directive_name),
-      field('condition', $.expression_content),
+      field('condition', alias($.directive_expression, $.expression_content)),
       '}',
     ),
 
     unless_end: $ => seq(
       '{',
       '/',
-      alias(token.immediate('unless'), $.directive_name),
+      alias('unless', $.directive_name),
       '}',
     ),
 
@@ -343,7 +402,7 @@ module.exports = grammar({
       '{',
       '#',
       alias(token.immediate('case'), $.directive_name),
-      field('value', $.expression_content),
+      field('value', alias($.directive_expression, $.expression_content)),
       '}',
     ),
 
@@ -356,7 +415,7 @@ module.exports = grammar({
       '{',
       ':',
       alias(token.immediate('when'), $.directive_name),
-      field('values', $.expression_content),
+      field('values', alias($.directive_expression, $.expression_content)),
       '}',
     ),
 
@@ -368,7 +427,7 @@ module.exports = grammar({
     case_end: $ => seq(
       '{',
       '/',
-      alias(token.immediate('case'), $.directive_name),
+      alias('case', $.directive_name),
       '}',
     ),
 
@@ -383,7 +442,7 @@ module.exports = grammar({
       '{',
       '#',
       alias(token.immediate('for'), $.directive_name),
-      field('clause', $.expression_content),
+      field('clause', alias($.directive_expression, $.expression_content)),
       '}',
     ),
 
@@ -395,7 +454,7 @@ module.exports = grammar({
     for_end: $ => seq(
       '{',
       '/',
-      alias(token.immediate('for'), $.directive_name),
+      alias('for', $.directive_name),
       '}',
     ),
 
@@ -403,9 +462,115 @@ module.exports = grammar({
       '{',
       '#',
       alias(token.immediate('svg'), $.directive_name),
-      field('path', $.expression_content),
+      field('path', alias($.directive_expression, $.expression_content)),
       '}',
     ),
+
+    // ----- {#raw} … {/raw} (D150) -------------------------------------------
+    // A raw block turns the template lexer off for its body. Braces are inert
+    // there — no interpolation, no block tags, no formatter pipes, no @event
+    // binding, and '\{' is not an escape — but HTML stays structural, so <b>
+    // is a real element and <Slot/>, <Portal> and <Card/> are plain elements,
+    // NOT composition markers. Raw blocks do not nest: the first valid closer
+    // wins. Legal at text positions only, so raw_block is a _node and is
+    // deliberately absent from _attribute_node.
+    raw_block: $ => seq(
+      $.raw_start,
+      repeat($._raw_node),
+      $.raw_end,
+    ),
+
+    // The opener ends at the first '}'. Anything between the keyword and that
+    // brace is allowed and ignored: {#raw json} is valid.
+    raw_start: $ => seq(
+      '{',
+      '#',
+      alias(token.immediate('raw'), $.directive_name),
+      optional($.raw_opener_rest),
+      '}',
+    ),
+
+    raw_opener_rest: _ => /[^}\s][^}]*/,
+
+    // Whitespace-tolerant, like every other closer: {/raw}, {/ raw }, {/raw }.
+    raw_end: $ => seq(
+      '{',
+      '/',
+      alias('raw', $.directive_name),
+      '}',
+    ),
+
+    _raw_node: $ => choice(
+      $.comment,
+      $.raw_void_element,
+      $.raw_self_closing_element,
+      $.raw_element,
+      $.raw_text,
+    ),
+
+    raw_element: $ => seq(
+      $.raw_start_tag,
+      repeat($._raw_node),
+      $.raw_end_tag,
+    ),
+
+    raw_start_tag: $ => seq(
+      '<',
+      field('name', $.raw_tag_name),
+      repeat($.raw_attribute),
+      '>',
+    ),
+
+    raw_end_tag: $ => seq(
+      '</',
+      field('name', $.raw_tag_name),
+      '>',
+    ),
+
+    raw_self_closing_element: $ => seq(
+      '<',
+      field('name', $.raw_tag_name),
+      repeat($.raw_attribute),
+      '/>',
+    ),
+
+    raw_void_element: $ => prec(5, seq(
+      '<',
+      field('name', $.void_tag_name),
+      repeat($.raw_attribute),
+      optional('/'),
+      '>',
+    )),
+
+    // A separate tag-name token is what keeps the marker highlight queries from
+    // firing on <Slot/> or <Portal> inside a raw body.
+    raw_tag_name: _ => /[A-Za-z][A-Za-z0-9_.:-]*/,
+
+    // Attribute values never enter interpolation here, and 'ref', 'island',
+    // 'key' and 'flip' are ordinary attribute names. The name charset is wide
+    // enough to hold a literal '@click' or '{'.
+    raw_attribute: $ => seq(
+      field('name', $.raw_attribute_name),
+      optional(seq(
+        '=',
+        field('value', choice(
+          $.raw_quoted_attribute_value,
+          $.raw_brace_value,
+          $.raw_unquoted_attribute_value,
+        )),
+      )),
+    ),
+
+    raw_attribute_name: _ => /[^\s<>"'=/]+/,
+    // Must not END on '/', or a self-closing '/>' gets swallowed.
+    raw_unquoted_attribute_value: _ => /[^<>"'=\s]*[^<>"'=\s/]/,
+
+    raw_quoted_attribute_value: $ => choice(
+      seq('"', optional($.raw_attribute_text), '"'),
+      seq("'", optional($.raw_attribute_text), "'"),
+    ),
+
+    raw_attribute_text: _ => /[^<>"']+/,
 
     attribute_if_statement: $ => seq(
       $.if_start,
@@ -461,6 +626,29 @@ module.exports = grammar({
       repeat($._attribute_node),
     ),
 
-    text: _ => /[^<>{}]+/,
+    // '\{' and '\}' are literal braces: the compiler's lexText drops the
+    // backslash and emits the brace, so '\{' never opens an interpolation. The
+    // decision is purely local — a backslash escapes only when the very next
+    // byte is a brace — so '\\{' is a literal backslash followed by an escaped
+    // brace, and there is no way to write a real interpolation after a
+    // backslash. Deliberately absent from every {#raw} context: lexRawText does
+    // no backslash handling at all, and a raw body's bytes stay verbatim (D150).
+    escaped_brace: _ => token(prec(1, /\\[{}]/)),
+
+    // Tree-sitter picks the longest match at a position, so `text` must be
+    // unable to swallow the backslash of a '\{' pair or escaped_brace never
+    // fires. The first alternative runs ordinary characters plus backslash
+    // pairs that are NOT escapes (`C:\Users` stays one token); the second
+    // carries a backslash the first cannot — before a brace, before markup, or
+    // at end of input — as a one-character token.
+    //
+    // A lone '}' is ordinary text, not an error: lexText breaks on '<' and '{'
+    // only, so `a } b` is literal in the compiler and only '{' needs escaping
+    // to be written literally. '{' stays excluded — it always opens an
+    // interpolation or a directive.
+    text: _ => token(choice(
+      /([^<>{\\]|\\[^<>{}\\])+/,
+      /\\/,
+    )),
   },
 });

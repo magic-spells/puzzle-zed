@@ -1,2 +1,11 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Output of `tree-sitter generate`. Committed because Zed builds the grammar
+# from the pinned commit rather than running the CLI, but never hand-edited —
+# a grammar.js change regenerates all three. Marking them generated collapses
+# them in GitHub diffs and excludes them from language stats, so a review shows
+# grammar.js and scanner.c instead of ~8k lines of generated parser tables.
+src/parser.c        linguist-generated=true
+src/grammar.json    linguist-generated=true
+src/node-types.json linguist-generated=true

@@ -3,6 +3,8 @@
 Puzzle single-file component support for [Zed](https://zed.dev), backed by a
 standalone Tree-sitter grammar.
 
+The grammar tracks the **Puzzle 0.7.0** template grammar.
+
 ## Features
 
 - HTML-like highlighting in `<puzzle-view>` and `<puzzle-skeleton>`
@@ -11,11 +13,18 @@ standalone Tree-sitter grammar.
 - TypeScript-aware highlighting inside Puzzle expressions
 - Puzzle conditionals, case blocks, collection/range loops, and SVG directives
 - `{#raw}` blocks: structural HTML inside, inert braces, no markers
+- Escaped braces: `\{` and `\}` are literal text, never an interpolation, and
+  are scoped as escapes — in template text and in quoted attribute values, but
+  deliberately not inside `{#raw}`, where the bytes stay verbatim
 - Formatter chains (`{ price | currency('$') }`), told apart from `||` and from
   a `|` inside a string or a regex literal
-- Composition markers (`<Children>`, `<Slot>`, `<Portal>`) scoped apart from
-  user components, with the lowercase spellings flagged
-- Distinct component tags, event/action names, and `@` sigils, plus the
+- Composition markers (`<Children>`, `<Slot>`, `<Portal>`, `<Snippet>`) scoped
+  apart from user components, with the lowercase spellings flagged
+- Snippets (D166): `<Snippet user>` bare parameters, `<Snippet fits="row" …>`,
+  and brace-valued marker arguments — `<Children user={ user }>`,
+  `<Slot name="row" user={ user }>`
+- Distinct component tags — including dotted component-family member paths
+  such as `<Frame.Wrapper>` (D167) — event/action names, and `@` sigils, plus the
   fourteen legal event modifiers scoped apart from unknown ones
 - Bracket matching, auto-indentation, and a component-aware outline
 - Tailwind CSS language-server opt-in for `.pzl` files

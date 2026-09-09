@@ -985,3 +985,371 @@ Raw brace-valued attribute is not closed by a brace inside a regex
     (view_end_tag
       (section_tag_name)))
   (text))
+
+==========================================
+Dotted component tags (component families)
+==========================================
+
+<puzzle-view>
+  <Frame.Wrapper class="dotted">
+    <Frame.Content>{ title }</Frame.Content>
+    <Frame.Inner.Deep/>
+  </Frame.Wrapper>
+  <Slot.Custom/>
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (element
+      (start_tag
+        name: (tag_name)
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (quoted_attribute_value
+              (attribute_text)))))
+      (text)
+      (element
+        (start_tag
+          name: (tag_name))
+        (interpolation
+          value: (expression_content))
+        (end_tag
+          name: (tag_name)))
+      (text)
+      (self_closing_element
+        name: (tag_name))
+      (text)
+      (end_tag
+        name: (tag_name)))
+    (text)
+    (self_closing_element
+      name: (tag_name))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+Snippet marker with bare parameters
+=====================================
+
+<puzzle-view><UserList users={ users }><Snippet fits="row" user group>{ user.name }</Snippet></UserList><Slot name="row" user={ u }>none</Slot><Snippet/></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        name: (tag_name)
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (interpolation
+              value: (expression_content)))))
+      (element
+        (start_tag
+          name: (tag_name)
+          (attribute
+            (normal_attribute
+              name: (attribute_name)
+              value: (quoted_attribute_value
+                (attribute_text))))
+          (attribute
+            (normal_attribute
+              name: (attribute_name)))
+          (attribute
+            (normal_attribute
+              name: (attribute_name))))
+        (interpolation
+          value: (expression_content))
+        (end_tag
+          name: (tag_name)))
+      (end_tag
+        name: (tag_name)))
+    (element
+      (start_tag
+        name: (tag_name)
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (quoted_attribute_value
+              (attribute_text))))
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (interpolation
+              value: (expression_content)))))
+      (text)
+      (end_tag
+        name: (tag_name)))
+    (self_closing_element
+      name: (tag_name))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+==========================================
+Escaped braces are literal text
+==========================================
+
+<puzzle-view><p>a \{ not an interpolation \} b</p><p>lone } brace, C:\Users\me</p></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        name: (tag_name))
+      (text)
+      (escaped_brace)
+      (text)
+      (escaped_brace)
+      (text)
+      (end_tag
+        name: (tag_name)))
+    (element
+      (start_tag
+        name: (tag_name))
+      (text)
+      (end_tag
+        name: (tag_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+==========================================
+Escaped braces beside a real interpolation
+==========================================
+
+<puzzle-view><p>\{ literal \} { real } \{</p></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        name: (tag_name))
+      (escaped_brace)
+      (text)
+      (escaped_brace)
+      (text)
+      (interpolation
+        value: (expression_content))
+      (escaped_brace)
+      (end_tag
+        name: (tag_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+==========================================
+Escaped braces inside a quoted attribute value
+==========================================
+
+<puzzle-view><p title="a \{ b \} c" data-x=a\{b>x</p></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        name: (tag_name)
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (quoted_attribute_value
+              (attribute_text)
+              (escaped_brace)
+              (attribute_text)
+              (escaped_brace)
+              (attribute_text))))
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (unquoted_attribute_value))))
+      (text)
+      (end_tag
+        name: (tag_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+==========================================
+Escaped braces stay literal inside a raw body
+==========================================
+
+<puzzle-view>{#raw}a \{ b \} }{/raw}</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (raw_block
+      (raw_start
+        (directive_name))
+      (raw_text)
+      (raw_end
+        (directive_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+==========================================
+Snippet parameters and marker arguments
+==========================================
+
+<puzzle-view><UserList users={ users }><Snippet user><b>{ user.name }</b></Snippet></UserList><GroupedList><Snippet fits="row" user group>x</Snippet></GroupedList><Children user={ user }>fallback</Children><Slot name="row" user={ user } group={ group }>fallback</Slot></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        name: (tag_name)
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (interpolation
+              value: (expression_content)))))
+      (element
+        (start_tag
+          name: (tag_name)
+          (attribute
+            (normal_attribute
+              name: (attribute_name))))
+        (element
+          (start_tag
+            name: (tag_name))
+          (interpolation
+            value: (expression_content))
+          (end_tag
+            name: (tag_name)))
+        (end_tag
+          name: (tag_name)))
+      (end_tag
+        name: (tag_name)))
+    (element
+      (start_tag
+        name: (tag_name))
+      (element
+        (start_tag
+          name: (tag_name)
+          (attribute
+            (normal_attribute
+              name: (attribute_name)
+              value: (quoted_attribute_value
+                (attribute_text))))
+          (attribute
+            (normal_attribute
+              name: (attribute_name)))
+          (attribute
+            (normal_attribute
+              name: (attribute_name))))
+        (text)
+        (end_tag
+          name: (tag_name)))
+      (end_tag
+        name: (tag_name)))
+    (element
+      (start_tag
+        name: (tag_name)
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (interpolation
+              value: (expression_content)))))
+      (text)
+      (end_tag
+        name: (tag_name)))
+    (element
+      (start_tag
+        name: (tag_name)
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (quoted_attribute_value
+              (attribute_text))))
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (interpolation
+              value: (expression_content))))
+        (attribute
+          (normal_attribute
+            name: (attribute_name)
+            value: (interpolation
+              value: (expression_content)))))
+      (text)
+      (end_tag
+        name: (tag_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+==========================================
+Range loop headers do not error on '...'
+==========================================
+
+<puzzle-view>{#for 1...5}a{/for}{#for i in 1...5}b{/for}{#for 1...5, x}c{/for}</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (for_statement
+      (for_start
+        (directive_name)
+        (expression_content))
+      (text)
+      (for_end
+        (directive_name)))
+    (for_statement
+      (for_start
+        (directive_name)
+        (expression_content))
+      (text)
+      (for_end
+        (directive_name)))
+    (for_statement
+      (for_start
+        (directive_name)
+        (expression_content))
+      (text)
+      (for_end
+        (directive_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))

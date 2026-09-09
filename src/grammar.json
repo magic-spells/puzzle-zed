@@ -91,6 +91,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "escaped_brace"
+        },
+        {
+          "type": "SYMBOL",
           "name": "text"
         }
       ]
@@ -757,7 +761,7 @@
     },
     "unquoted_attribute_value": {
       "type": "PATTERN",
-      "value": "[^<>{}\"'=\\s]*[^<>{}\"'=\\s/]"
+      "value": "([^<>{}\"'=\\s]|\\\\[{}])*([^<>{}\"'=\\s/]|\\\\[{}])"
     },
     "quoted_attribute_value": {
       "type": "CHOICE",
@@ -829,13 +833,29 @@
         },
         {
           "type": "SYMBOL",
+          "name": "escaped_brace"
+        },
+        {
+          "type": "SYMBOL",
           "name": "attribute_text"
         }
       ]
     },
     "attribute_text": {
-      "type": "PATTERN",
-      "value": "[^<>{}\"']+"
+      "type": "TOKEN",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "PATTERN",
+            "value": "([^<>{\"'\\\\]|\\\\[^<>{}\"'\\\\])+"
+          },
+          {
+            "type": "PATTERN",
+            "value": "\\\\"
+          }
+        ]
+      }
     },
     "interpolation": {
       "type": "SEQ",
@@ -2199,9 +2219,32 @@
         }
       ]
     },
+    "escaped_brace": {
+      "type": "TOKEN",
+      "content": {
+        "type": "PREC",
+        "value": 1,
+        "content": {
+          "type": "PATTERN",
+          "value": "\\\\[{}]"
+        }
+      }
+    },
     "text": {
-      "type": "PATTERN",
-      "value": "[^<>{}]+"
+      "type": "TOKEN",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "PATTERN",
+            "value": "([^<>{\\\\]|\\\\[^<>{}\\\\])+"
+          },
+          {
+            "type": "PATTERN",
+            "value": "\\\\"
+          }
+        ]
+      }
     }
   },
   "extras": [

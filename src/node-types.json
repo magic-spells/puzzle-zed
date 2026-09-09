@@ -20,6 +20,10 @@
         "named": true
       },
       {
+        "type": "escaped_brace",
+        "named": true
+      },
+      {
         "type": "for_statement",
         "named": true
       },
@@ -113,6 +117,10 @@
           "named": true
         },
         {
+          "type": "escaped_brace",
+          "named": true
+        },
+        {
           "type": "interpolation",
           "named": true
         }
@@ -179,6 +187,10 @@
           "named": true
         },
         {
+          "type": "escaped_brace",
+          "named": true
+        },
+        {
           "type": "interpolation",
           "named": true
         }
@@ -215,6 +227,10 @@
         },
         {
           "type": "else_if_start",
+          "named": true
+        },
+        {
+          "type": "escaped_brace",
           "named": true
         },
         {
@@ -257,6 +273,10 @@
           "named": true
         },
         {
+          "type": "escaped_brace",
+          "named": true
+        },
+        {
           "type": "interpolation",
           "named": true
         }
@@ -293,6 +313,10 @@
         },
         {
           "type": "attribute_unless_statement",
+          "named": true
+        },
+        {
+          "type": "escaped_brace",
           "named": true
         },
         {
@@ -347,6 +371,10 @@
           "named": true
         },
         {
+          "type": "escaped_brace",
+          "named": true
+        },
+        {
           "type": "if_end",
           "named": true
         },
@@ -394,6 +422,10 @@
           "named": true
         },
         {
+          "type": "escaped_brace",
+          "named": true
+        },
+        {
           "type": "interpolation",
           "named": true
         },
@@ -434,6 +466,10 @@
         },
         {
           "type": "attribute_unless_statement",
+          "named": true
+        },
+        {
+          "type": "escaped_brace",
           "named": true
         },
         {
@@ -1016,6 +1052,10 @@
         },
         {
           "type": "attribute_unless_statement",
+          "named": true
+        },
+        {
+          "type": "escaped_brace",
           "named": true
         },
         {
@@ -1835,6 +1875,10 @@
   {
     "type": "embed",
     "named": false
+  },
+  {
+    "type": "escaped_brace",
+    "named": true
   },
   {
     "type": "expression_content",

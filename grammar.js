@@ -80,6 +80,7 @@ module.exports = grammar({
       $.void_element,
       $.self_closing_element,
       $.element,
+      $.escaped_brace,
       $.text,
     ),
 
@@ -250,8 +251,12 @@ module.exports = grammar({
     attribute_name: _ => /[A-Za-z_][A-Za-z0-9_.:-]*/,
     event_name: _ => token.immediate(/[A-Za-z_][A-Za-z0-9_-]*/),
     event_modifier: _ => token.immediate(/[A-Za-z_][A-Za-z0-9_-]*/),
-    // Must not END on '/', or a self-closing '/>' gets swallowed.
-    unquoted_attribute_value: _ => /[^<>{}"'=\s]*[^<>{}"'=\s/]/,
+    // Must not END on '/', or a self-closing '/>' gets swallowed. The '\{'/'\}'
+    // escape reaches an unquoted value too — the compiler routes TokAttrBare
+    // through the same parseAttrParts as a quoted value — but an unquoted value
+    // is one flat token with no room for a child node, so the escape is folded
+    // into the token instead of surfacing as escaped_brace.
+    unquoted_attribute_value: _ => /([^<>{}"'=\s]|\\[{}])*([^<>{}"'=\s/]|\\[{}])/,
 
     quoted_attribute_value: $ => choice(
       seq(
@@ -272,10 +277,20 @@ module.exports = grammar({
       $.attribute_case_statement,
       $.attribute_for_statement,
       $.interpolation,
+      $.escaped_brace,
       $.attribute_text,
     ),
 
-    attribute_text: _ => /[^<>{}"']+/,
+    // Same shape as `text`, plus the enclosing quotes. The compiler routes a
+    // quoted value through parseAttrParts, which applies the very same '\{'/'\}'
+    // escape and treats a lone '}' as literal. A '\' before a quote is NOT an
+    // escape — the quoted-value scan ends the value at the next raw quote byte —
+    // so the backslash-pair alternative excludes them and the lone-'\'
+    // alternative carries the trailing backslash of `class="C:\"`.
+    attribute_text: _ => token(choice(
+      /([^<>{"'\\]|\\[^<>{}"'\\])+/,
+      /\\/,
+    )),
 
     // { expr }, { expr | formatter }, { expr | formatter(arg, arg) | other }.
     // The scanner ends expression_content at the first top-level SINGLE '|', so
@@ -611,6 +626,29 @@ module.exports = grammar({
       repeat($._attribute_node),
     ),
 
-    text: _ => /[^<>{}]+/,
+    // '\{' and '\}' are literal braces: the compiler's lexText drops the
+    // backslash and emits the brace, so '\{' never opens an interpolation. The
+    // decision is purely local — a backslash escapes only when the very next
+    // byte is a brace — so '\\{' is a literal backslash followed by an escaped
+    // brace, and there is no way to write a real interpolation after a
+    // backslash. Deliberately absent from every {#raw} context: lexRawText does
+    // no backslash handling at all, and a raw body's bytes stay verbatim (D150).
+    escaped_brace: _ => token(prec(1, /\\[{}]/)),
+
+    // Tree-sitter picks the longest match at a position, so `text` must be
+    // unable to swallow the backslash of a '\{' pair or escaped_brace never
+    // fires. The first alternative runs ordinary characters plus backslash
+    // pairs that are NOT escapes (`C:\Users` stays one token); the second
+    // carries a backslash the first cannot — before a brace, before markup, or
+    // at end of input — as a one-character token.
+    //
+    // A lone '}' is ordinary text, not an error: lexText breaks on '<' and '{'
+    // only, so `a } b` is literal in the compiler and only '{' needs escaping
+    // to be written literally. '{' stays excluded — it always opens an
+    // interpolation or a directive.
+    text: _ => token(choice(
+      /([^<>{\\]|\\[^<>{}\\])+/,
+      /\\/,
+    )),
   },
 });

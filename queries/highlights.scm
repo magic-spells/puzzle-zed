@@ -56,6 +56,11 @@
 (attribute_text) @string
 (unquoted_attribute_value) @string
 
+; '\{' and '\}' are literal braces, not an interpolation (the compiler drops
+; the backslash and emits the brace). Legal in template text and in a quoted
+; attribute value; deliberately never inside {#raw}, whose bytes stay verbatim.
+(escaped_brace) @string.escape
+
 ; The complete event-modifier set: four generic modifiers plus ten key filters.
 ; The compiler rejects anything else.
 ((event_modifier) @attribute

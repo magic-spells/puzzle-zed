@@ -1746,3 +1746,54 @@ Preformatted whitespace around an interpolation
     (view_end_tag
       (section_tag_name)))
   (text))
+
+====================================================================
+Quoted attribute values allow the other quote and angle brackets
+====================================================================
+
+<puzzle-view>
+  <p hint="the view's data()" class="[&>svg]:size-4 {#if on}a{/if}" title='say "hi" > { name }'>x</p>
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (element
+      (start_tag
+        (tag_name)
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (quoted_attribute_value
+              (attribute_text))))
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (quoted_attribute_value
+              (attribute_text)
+              (attribute_if_statement
+                (if_start
+                  (directive_name)
+                  (expression_content))
+                (attribute_text)
+                (if_end
+                  (directive_name))))))
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (quoted_attribute_value
+              (attribute_text)
+              (interpolation
+                (expression_content))))))
+      (text)
+      (end_tag
+        (tag_name)))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))

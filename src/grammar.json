@@ -802,8 +802,22 @@
             {
               "type": "REPEAT",
               "content": {
-                "type": "SYMBOL",
-                "name": "_attribute_node"
+                "type": "CHOICE",
+                "members": [
+                  {
+                    "type": "SYMBOL",
+                    "name": "_attribute_node"
+                  },
+                  {
+                    "type": "ALIAS",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "_attribute_text_double"
+                    },
+                    "named": true,
+                    "value": "attribute_text"
+                  }
+                ]
               }
             },
             {
@@ -822,8 +836,22 @@
             {
               "type": "REPEAT",
               "content": {
-                "type": "SYMBOL",
-                "name": "_attribute_node"
+                "type": "CHOICE",
+                "members": [
+                  {
+                    "type": "SYMBOL",
+                    "name": "_attribute_node"
+                  },
+                  {
+                    "type": "ALIAS",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "_attribute_text_single"
+                    },
+                    "named": true,
+                    "value": "attribute_text"
+                  }
+                ]
               }
             },
             {
@@ -874,7 +902,39 @@
         "members": [
           {
             "type": "PATTERN",
-            "value": "([^<>{\"'\\\\]|\\\\[^<>{}\"'\\\\])+"
+            "value": "([^{\"'\\\\]|\\\\[^{}\"'\\\\])+"
+          },
+          {
+            "type": "PATTERN",
+            "value": "\\\\"
+          }
+        ]
+      }
+    },
+    "_attribute_text_double": {
+      "type": "TOKEN",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "PATTERN",
+            "value": "([^{\"\\\\]|\\\\[^{}\"\\\\])+"
+          },
+          {
+            "type": "PATTERN",
+            "value": "\\\\"
+          }
+        ]
+      }
+    },
+    "_attribute_text_single": {
+      "type": "TOKEN",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "PATTERN",
+            "value": "([^{'\\\\]|\\\\[^{}'\\\\])+"
           },
           {
             "type": "PATTERN",

@@ -270,12 +270,12 @@ module.exports = grammar({
     quoted_attribute_value: $ => choice(
       seq(
         '"',
-        repeat($._attribute_node),
+        repeat(choice($._attribute_node, alias($._attribute_text_double, $.attribute_text))),
         '"',
       ),
       seq(
         "'",
-        repeat($._attribute_node),
+        repeat(choice($._attribute_node, alias($._attribute_text_single, $.attribute_text))),
         "'",
       ),
     ),
@@ -297,7 +297,22 @@ module.exports = grammar({
     // so the backslash-pair alternative excludes them and the lone-'\'
     // alternative carries the trailing backslash of `class="C:\"`.
     attribute_text: _ => token(choice(
-      /([^<>{"'\\]|\\[^<>{}"'\\])+/,
+      /([^{"'\\]|\\[^{}"'\\])+/,
+      /\\/,
+    )),
+    // Directly inside a quoted value, only that value's own quote ends it, so
+    // the other quote character and '<'/'>' are ordinary text there:
+    // hint="the view's data()" and class="[&>svg]:size-4" are one text run
+    // each. Both alias back to attribute_text. The shared attribute_text above
+    // still serves the bodies of inline blocks in an attribute value, where
+    // the enclosing quote is not known, so an apostrophe inside an inline
+    // {#if} body in a double-quoted value is still a known limitation.
+    _attribute_text_double: _ => token(choice(
+      /([^{"\\]|\\[^{}"\\])+/,
+      /\\/,
+    )),
+    _attribute_text_single: _ => token(choice(
+      /([^{'\\]|\\[^{}'\\])+/,
       /\\/,
     )),
 

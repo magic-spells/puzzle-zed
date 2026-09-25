@@ -3,7 +3,7 @@
 Puzzle single-file component support for [Zed](https://zed.dev), backed by a
 standalone Tree-sitter grammar.
 
-The grammar tracks the **Puzzle 0.7.0** template grammar.
+The grammar tracks the **Puzzle 0.8.0** template grammar.
 
 ## Features
 
@@ -17,7 +17,15 @@ The grammar tracks the **Puzzle 0.7.0** template grammar.
   are scoped as escapes — in template text and in quoted attribute values, but
   deliberately not inside `{#raw}`, where the bytes stay verbatim
 - Formatter chains (`{ price | currency('$') }`), told apart from `||` and from
-  a `|` inside a string or a regex literal
+  a `|` inside a string, a regex literal, or parentheses
+- New in 0.8.0 (D173): formatter chains in every value position — brace-only
+  attribute values (`title={ price | currency }`), component props and marker
+  arguments, and the `{#if}`, `{:else if}`, `{#unless}` and `{#case}` headers,
+  including an inline `{#if}` inside a quoted attribute value. `@event`
+  handler bodies stay plain JavaScript, so `@click={ a | b }` is a bitwise OR,
+  and a pipe in a `{#for}` header or a `{:when}` value — a compile error — is
+  flagged invalid. Object literals in call and formatter arguments
+  (`{ 'greeting' | t({ name: user.name }) }`) balance as JavaScript
 - Composition markers (`<Children>`, `<Slot>`, `<Portal>`, `<Snippet>`) scoped
   apart from user components, with the lowercase spellings flagged
 - Snippets (D166): `<Snippet user>` bare parameters, `<Snippet fits="row" …>`,

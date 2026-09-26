@@ -1,7 +1,7 @@
 id = "puzzle"
 name = "Puzzle"
 description = "Puzzle single-file component language support"
-version = "0.3.0"
+version = "0.4.0"
 schema_version = 1
 authors = ["Magic Spells"]
 repository = "https://github.com/magic-spells/puzzle-zed"

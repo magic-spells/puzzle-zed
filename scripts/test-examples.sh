@@ -2,10 +2,13 @@
 set -eu
 
 # The framework moved into a monorepo package (D162), so the examples now sit at
-# packages/puzzle/examples. The pre-monorepo path stays as a fallback so a
-# checkout of an older Puzzle still works; PUZZLE_EXAMPLES_DIR overrides both.
+# packages/puzzle/examples. The editor repos live one level down, under
+# editors/, so the monorepo is ../../puzzle; the sibling and pre-monorepo paths
+# stay as fallbacks. PUZZLE_EXAMPLES_DIR overrides all of them.
 if [ -n "${PUZZLE_EXAMPLES_DIR:-}" ]; then
   puzzle_examples_dir=$PUZZLE_EXAMPLES_DIR
+elif [ -d ../../puzzle/packages/puzzle/examples ]; then
+  puzzle_examples_dir=../../puzzle/packages/puzzle/examples
 elif [ -d ../puzzle/packages/puzzle/examples ]; then
   puzzle_examples_dir=../puzzle/packages/puzzle/examples
 else

@@ -49,6 +49,11 @@
 (event_name) @function
 (directive_name) @keyword
 (formatter_name) @function
+
+; A formatter chain where the compiler rejects one — a {#for} header or a
+; {:when} value (D173 V1). The '|' after an @event handler is not a pipe at all
+; (the handler body is plain JavaScript), so it never reaches either capture.
+(invalid_formatter_name) @invalid
 (attribute_text) @string
 (unquoted_attribute_value) @string
 

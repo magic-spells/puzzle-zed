@@ -45,7 +45,7 @@ export default class Album extends PuzzleView {}
         (event_attribute
           (event_name)
           (event_modifier)
-          (interpolation
+          (event_handler
             (expression_content)))))
     (text)
     (element
@@ -275,7 +275,7 @@ Collection and range loops
         (attribute
           (event_attribute
             (event_name)
-            (interpolation
+            (event_handler
               (expression_content)))))
       (text)
       (for_end
@@ -1350,6 +1350,450 @@ Range loop headers do not error on '...'
       (text)
       (for_end
         (directive_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=========================================================
+Formatter chains in brace-only attribute values (D173 V1)
+=========================================================
+
+<puzzle-view><p title={ price | currency } class={ x | downcase } key={ id | slug }>x</p></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        (tag_name)
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (interpolation
+              (expression_content)
+              (formatter
+                (formatter_name)))))
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (interpolation
+              (expression_content)
+              (formatter
+                (formatter_name)))))
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (interpolation
+              (expression_content)
+              (formatter
+                (formatter_name))))))
+      (text)
+      (end_tag
+        (tag_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+==================================================================
+Formatter chains in component props and marker arguments (D173 V1)
+==================================================================
+
+<puzzle-view>
+  <Card total={ n | currency('$', 0) } />
+  <Children user={ user | upcase }/>
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (self_closing_element
+      (tag_name)
+      (attribute
+        (normal_attribute
+          (attribute_name)
+          (interpolation
+            (expression_content)
+            (formatter
+              (formatter_name)
+              (formatter_arguments
+                (expression_content)
+                (expression_content)))))))
+    (text)
+    (self_closing_element
+      (tag_name)
+      (attribute
+        (normal_attribute
+          (attribute_name)
+          (interpolation
+            (expression_content)
+            (formatter
+              (formatter_name))))))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+===========================================
+Formatter chains in block headers (D173 V1)
+===========================================
+
+<puzzle-view>
+  {#if post.tags | size}a{:else if a | size}b{/if}
+  {#unless x | blank-ish}c{/unless}
+  {#case status | downcase}{:when 'a', 'b'}d{/case}
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (if_statement
+      (if_start
+        (directive_name)
+        (expression_content)
+        (formatter
+          (formatter_name)))
+      (text)
+      (else_if_block
+        (else_if_start
+          (directive_name)
+          (directive_name)
+          (expression_content)
+          (formatter
+            (formatter_name)))
+        (text))
+      (if_end
+        (directive_name)))
+    (text)
+    (unless_statement
+      (unless_start
+        (directive_name)
+        (expression_content)
+        (formatter
+          (formatter_name)))
+      (text)
+      (unless_end
+        (directive_name)))
+    (text)
+    (case_statement
+      (case_start
+        (directive_name)
+        (expression_content)
+        (formatter
+          (formatter_name)))
+      (when_block
+        (when_start
+          (directive_name)
+          (expression_content))
+        (text))
+      (case_end
+        (directive_name)))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+===================================================
+Formatter chain in an inline attribute if (D173 V1)
+===================================================
+
+<puzzle-view><b class="btn {#if tags | size}on{/if}">e</b></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        (tag_name)
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (quoted_attribute_value
+              (attribute_text)
+              (attribute_if_statement
+                (if_start
+                  (directive_name)
+                  (expression_content)
+                  (formatter
+                    (formatter_name)))
+                (attribute_text)
+                (if_end
+                  (directive_name)))))))
+      (text)
+      (end_tag
+        (tag_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================================
+Logical OR and parenthesized bitwise OR are not pipes
+=====================================================
+
+<puzzle-view>{ a || b }<i title={ a || b }></i>{ (flags | mask) }</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (interpolation
+      (expression_content))
+    (element
+      (start_tag
+        (tag_name)
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (interpolation
+              (expression_content)))))
+      (end_tag
+        (tag_name)))
+    (interpolation
+      (expression_content))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+============================================
+Event handler bodies take no formatter chain
+============================================
+
+<puzzle-view><button @click={ a | b }>f</button></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        (tag_name)
+        (attribute
+          (event_attribute
+            (event_name)
+            (event_handler
+              (expression_content)))))
+      (text)
+      (end_tag
+        (tag_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=========================================================
+Object literals in formatter and call arguments (D173 V8)
+=========================================================
+
+<puzzle-view>
+  { 'greeting' | t({ name: user.name }) } after
+  { photo | resize({ height: 480 }) } after
+  <button @click={ save({ id: todo.id }) }>g</button> tail
+  { fn({ a: 1 }) } done
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (interpolation
+      (expression_content)
+      (formatter
+        (formatter_name)
+        (formatter_arguments
+          (expression_content))))
+    (text)
+    (interpolation
+      (expression_content)
+      (formatter
+        (formatter_name)
+        (formatter_arguments
+          (expression_content))))
+    (text)
+    (element
+      (start_tag
+        (tag_name)
+        (attribute
+          (event_attribute
+            (event_name)
+            (event_handler
+              (expression_content)))))
+      (text)
+      (end_tag
+        (tag_name)))
+    (text)
+    (interpolation
+      (expression_content))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+========================================================
+Pipes rejected in loop headers and when values (D173 V1)
+========================================================
+
+<puzzle-view>
+  {#for item in items | sort}h{/for}
+  {#for i in 1...n | clamp, idx}h{/for}
+  {#case s}{:when 'a' | x, 'b'}i{/case}
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (for_statement
+      (for_start
+        (directive_name)
+        (expression_content)
+        (invalid_formatter
+          (invalid_formatter_name)))
+      (text)
+      (for_end
+        (directive_name)))
+    (text)
+    (for_statement
+      (for_start
+        (directive_name)
+        (expression_content)
+        (invalid_formatter
+          (invalid_formatter_name))
+        (expression_content))
+      (text)
+      (for_end
+        (directive_name)))
+    (text)
+    (case_statement
+      (case_start
+        (directive_name)
+        (expression_content))
+      (when_block
+        (when_start
+          (directive_name)
+          (expression_content)
+          (invalid_formatter
+            (invalid_formatter_name))
+          (expression_content))
+        (text))
+      (case_end
+        (directive_name)))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+===============================================
+Preformatted whitespace around an interpolation
+===============================================
+
+<puzzle-view>
+  <pre>
+    line { v | upcase }
+      indented
+  </pre>
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (element
+      (start_tag
+        (tag_name))
+      (text)
+      (interpolation
+        (expression_content)
+        (formatter
+          (formatter_name)))
+      (text)
+      (end_tag
+        (tag_name)))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+====================================================================
+Quoted attribute values allow the other quote and angle brackets
+====================================================================
+
+<puzzle-view>
+  <p hint="the view's data()" class="[&>svg]:size-4 {#if on}a{/if}" title='say "hi" > { name }'>x</p>
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (element
+      (start_tag
+        (tag_name)
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (quoted_attribute_value
+              (attribute_text))))
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (quoted_attribute_value
+              (attribute_text)
+              (attribute_if_statement
+                (if_start
+                  (directive_name)
+                  (expression_content))
+                (attribute_text)
+                (if_end
+                  (directive_name))))))
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (quoted_attribute_value
+              (attribute_text)
+              (interpolation
+                (expression_content))))))
+      (text)
+      (end_tag
+        (tag_name)))
+    (text)
     (view_end_tag
       (section_tag_name)))
   (text))

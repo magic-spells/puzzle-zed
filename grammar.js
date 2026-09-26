@@ -30,10 +30,11 @@ module.exports = grammar({
     $.expression_content,
     $.inline_comment,
     $.block_comment,
-    // Directive expressions ({#if …}, {#for …}, {:when …}, {#svg …}) are
-    // aliased to expression_content everywhere they appear. They differ from an
-    // interpolation's expression only in that a top-level '|' is NOT a formatter
-    // pipe there — the compiler splits pipes in interpolations only.
+    // Pipe-free expressions — an @event handler body and the {#svg …} path —
+    // aliased to expression_content everywhere they appear. They differ from a
+    // value expression only in that a top-level '|' is NOT a formatter pipe
+    // there: a handler body is plain JavaScript, so `@click={ a | b }` is a
+    // bitwise OR.
     $.directive_expression,
     // One formatter argument, aliased to expression_content so the TypeScript
     // injection covers it. Stops at a top-level ',' or ')'.
@@ -239,8 +240,16 @@ module.exports = grammar({
       )),
       optional(seq(
         '=',
-        field('value', $.interpolation),
+        field('value', $.event_handler),
       )),
+    ),
+
+    // An @event value is a handler body, not a value position: it takes no
+    // formatter chain, so a top-level '|' stays JavaScript (bitwise OR).
+    event_handler: $ => seq(
+      '{',
+      field('value', alias($.directive_expression, $.expression_content)),
+      '}',
     ),
 
     // A leading ':' is deliberately excluded. Tree-sitter's lexer prefers the
@@ -261,12 +270,12 @@ module.exports = grammar({
     quoted_attribute_value: $ => choice(
       seq(
         '"',
-        repeat($._attribute_node),
+        repeat(choice($._attribute_node, alias($._attribute_text_double, $.attribute_text))),
         '"',
       ),
       seq(
         "'",
-        repeat($._attribute_node),
+        repeat(choice($._attribute_node, alias($._attribute_text_single, $.attribute_text))),
         "'",
       ),
     ),
@@ -288,14 +297,32 @@ module.exports = grammar({
     // so the backslash-pair alternative excludes them and the lone-'\'
     // alternative carries the trailing backslash of `class="C:\"`.
     attribute_text: _ => token(choice(
-      /([^<>{"'\\]|\\[^<>{}"'\\])+/,
+      /([^{"'\\]|\\[^{}"'\\])+/,
+      /\\/,
+    )),
+    // Directly inside a quoted value, only that value's own quote ends it, so
+    // the other quote character and '<'/'>' are ordinary text there:
+    // hint="the view's data()" and class="[&>svg]:size-4" are one text run
+    // each. Both alias back to attribute_text. The shared attribute_text above
+    // still serves the bodies of inline blocks in an attribute value, where
+    // the enclosing quote is not known, so an apostrophe inside an inline
+    // {#if} body in a double-quoted value is still a known limitation.
+    _attribute_text_double: _ => token(choice(
+      /([^{"\\]|\\[^{}"\\])+/,
+      /\\/,
+    )),
+    _attribute_text_single: _ => token(choice(
+      /([^{'\\]|\\[^{}'\\])+/,
       /\\/,
     )),
 
     // { expr }, { expr | formatter }, { expr | formatter(arg, arg) | other }.
     // The scanner ends expression_content at the first top-level SINGLE '|', so
-    // a logical-OR ('||') and a '|' inside a string or a /a|b/ regex stay part
-    // of the expression.
+    // a logical-OR ('||') and a '|' inside a string, a /a|b/ regex, or any
+    // (), [] or {} stay part of the expression. The same chain is legal in every
+    // value position (D173 V1): text, quoted and brace-only attribute values,
+    // component props and marker arguments — all of which parse as this node —
+    // and the {#if}, {:else if}, {#unless} and {#case} headers below.
     interpolation: $ => seq(
       '{',
       field('value', $.expression_content),
@@ -309,7 +336,24 @@ module.exports = grammar({
       optional($.formatter_arguments),
     ),
 
-    formatter_name: _ => /[A-Za-z_$][A-Za-z0-9_$]*/,
+    // The compiler's isFormatterName: '-' is legal after the first character.
+    formatter_name: _ => /[A-Za-z_$][A-Za-z0-9_$-]*/,
+
+    // A formatter chain where the compiler rejects one — a {#for} header
+    // (collection or either range bound) or a {:when} value (D173 V1). It
+    // parses (no ERROR node) so highlighting can flag the name as invalid.
+    // After a rejected pipe the rest of the header — a `, counter` or another
+    // {:when} value — still parses, so the one mistake is the one flag.
+    _invalid_chain: $ => choice(
+      $.invalid_formatter,
+      seq(',', $.expression_content),
+    ),
+
+    invalid_formatter: $ => seq(
+      '|',
+      field('name', alias($.formatter_name, $.invalid_formatter_name)),
+      optional($.formatter_arguments),
+    ),
 
     formatter_arguments: $ => seq(
       '(',
@@ -332,7 +376,8 @@ module.exports = grammar({
       '{',
       '#',
       alias(token.immediate('if'), $.directive_name),
-      field('condition', alias($.directive_expression, $.expression_content)),
+      field('condition', $.expression_content),
+      repeat($.formatter),
       '}',
     ),
 
@@ -346,7 +391,8 @@ module.exports = grammar({
       ':',
       alias(token.immediate('else'), $.directive_name),
       alias('if', $.directive_name),
-      field('condition', alias($.directive_expression, $.expression_content)),
+      field('condition', $.expression_content),
+      repeat($.formatter),
       '}',
     ),
 
@@ -380,7 +426,8 @@ module.exports = grammar({
       '{',
       '#',
       alias(token.immediate('unless'), $.directive_name),
-      field('condition', alias($.directive_expression, $.expression_content)),
+      field('condition', $.expression_content),
+      repeat($.formatter),
       '}',
     ),
 
@@ -402,7 +449,8 @@ module.exports = grammar({
       '{',
       '#',
       alias(token.immediate('case'), $.directive_name),
-      field('value', alias($.directive_expression, $.expression_content)),
+      field('value', $.expression_content),
+      repeat($.formatter),
       '}',
     ),
 
@@ -415,7 +463,8 @@ module.exports = grammar({
       '{',
       ':',
       alias(token.immediate('when'), $.directive_name),
-      field('values', alias($.directive_expression, $.expression_content)),
+      field('values', $.expression_content),
+      repeat($._invalid_chain),
       '}',
     ),
 
@@ -442,7 +491,8 @@ module.exports = grammar({
       '{',
       '#',
       alias(token.immediate('for'), $.directive_name),
-      field('clause', alias($.directive_expression, $.expression_content)),
+      field('clause', $.expression_content),
+      repeat($._invalid_chain),
       '}',
     ),
 

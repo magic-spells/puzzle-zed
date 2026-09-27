@@ -1190,7 +1190,7 @@
           "type": "REPEAT",
           "content": {
             "type": "SYMBOL",
-            "name": "formatter"
+            "name": "_invalid_chain"
           }
         },
         {
@@ -1259,7 +1259,7 @@
           "type": "REPEAT",
           "content": {
             "type": "SYMBOL",
-            "name": "formatter"
+            "name": "_invalid_chain"
           }
         },
         {
@@ -1406,7 +1406,7 @@
           "type": "REPEAT",
           "content": {
             "type": "SYMBOL",
-            "name": "formatter"
+            "name": "_invalid_chain"
           }
         },
         {
@@ -1508,7 +1508,7 @@
           "type": "REPEAT",
           "content": {
             "type": "SYMBOL",
-            "name": "formatter"
+            "name": "_invalid_chain"
           }
         },
         {

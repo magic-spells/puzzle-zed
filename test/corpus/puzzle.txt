@@ -1442,9 +1442,9 @@ Formatter chains in component props and marker arguments (D173 V1)
       (section_tag_name)))
   (text))
 
-===========================================
-Formatter chains in block headers (D173 V1)
-===========================================
+=============================================================
+Pipes rejected in condition headers (D173 V1)
+=============================================================
 
 <puzzle-view>
   {#if post.tags | size}a{:else if a | size}b{/if}
@@ -1464,16 +1464,16 @@ Formatter chains in block headers (D173 V1)
       (if_start
         (directive_name)
         (expression_content)
-        (formatter
-          (formatter_name)))
+        (invalid_formatter
+          (invalid_formatter_name)))
       (text)
       (else_if_block
         (else_if_start
           (directive_name)
           (directive_name)
           (expression_content)
-          (formatter
-            (formatter_name)))
+          (invalid_formatter
+            (invalid_formatter_name)))
         (text))
       (if_end
         (directive_name)))
@@ -1482,8 +1482,8 @@ Formatter chains in block headers (D173 V1)
       (unless_start
         (directive_name)
         (expression_content)
-        (formatter
-          (formatter_name)))
+        (invalid_formatter
+          (invalid_formatter_name)))
       (text)
       (unless_end
         (directive_name)))
@@ -1492,8 +1492,8 @@ Formatter chains in block headers (D173 V1)
       (case_start
         (directive_name)
         (expression_content)
-        (formatter
-          (formatter_name)))
+        (invalid_formatter
+          (invalid_formatter_name)))
       (when_block
         (when_start
           (directive_name)
@@ -1506,11 +1506,41 @@ Formatter chains in block headers (D173 V1)
       (section_tag_name)))
   (text))
 
-===================================================
-Formatter chain in an inline attribute if (D173 V1)
-===================================================
+=============================================================
+Rejected pipe with arguments and a chain in an if header
+=============================================================
 
-<puzzle-view><b class="btn {#if tags | size}on{/if}">e</b></puzzle-view>
+<puzzle-view>{#if items | filter('open') | size}a{/if}</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (if_statement
+      (if_start
+        (directive_name)
+        (expression_content)
+        (invalid_formatter
+          (invalid_formatter_name)
+          (formatter_arguments
+            (expression_content)))
+        (invalid_formatter
+          (invalid_formatter_name)))
+      (text)
+      (if_end
+        (directive_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=============================================================
+Pipes rejected in inline attribute headers (D173 V1)
+=============================================================
+
+<puzzle-view><b class="btn {#if tags | size}on{:else if n | pos}p{/if} {#unless x | blank}u{/unless} {#case s | lower}{:when 'a'}w{/case}">e</b></puzzle-view>
 
 ---
 
@@ -1531,14 +1561,125 @@ Formatter chain in an inline attribute if (D173 V1)
                 (if_start
                   (directive_name)
                   (expression_content)
-                  (formatter
-                    (formatter_name)))
+                  (invalid_formatter
+                    (invalid_formatter_name)))
+                (attribute_text)
+                (attribute_else_if_block
+                  (else_if_start
+                    (directive_name)
+                    (directive_name)
+                    (expression_content)
+                    (invalid_formatter
+                      (invalid_formatter_name)))
+                  (attribute_text))
+                (if_end
+                  (directive_name)))
+              (attribute_text)
+              (attribute_unless_statement
+                (unless_start
+                  (directive_name)
+                  (expression_content)
+                  (invalid_formatter
+                    (invalid_formatter_name)))
+                (attribute_text)
+                (unless_end
+                  (directive_name)))
+              (attribute_text)
+              (attribute_case_statement
+                (case_start
+                  (directive_name)
+                  (expression_content)
+                  (invalid_formatter
+                    (invalid_formatter_name)))
+                (attribute_when_block
+                  (when_start
+                    (directive_name)
+                    (expression_content))
+                  (attribute_text))
+                (case_end
+                  (directive_name)))))))
+      (text)
+      (end_tag
+        (tag_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=============================================================
+Logical OR and bitwise OR in condition headers are plain JS
+=============================================================
+
+<puzzle-view>
+  {#if a || b}x{:else if (flags | mask)}y{/if}
+  {#unless a || b}z{/unless}
+  {#case a || b}{/case}
+  <b class="{#if a || b}on{/if}">e</b>
+  {#if /a|b/.test(s) && t === 'x|y'}r{/if}
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (if_statement
+      (if_start
+        (directive_name)
+        (expression_content))
+      (text)
+      (else_if_block
+        (else_if_start
+          (directive_name)
+          (directive_name)
+          (expression_content))
+        (text))
+      (if_end
+        (directive_name)))
+    (text)
+    (unless_statement
+      (unless_start
+        (directive_name)
+        (expression_content))
+      (text)
+      (unless_end
+        (directive_name)))
+    (text)
+    (case_statement
+      (case_start
+        (directive_name)
+        (expression_content))
+      (case_end
+        (directive_name)))
+    (text)
+    (element
+      (start_tag
+        (tag_name)
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (quoted_attribute_value
+              (attribute_if_statement
+                (if_start
+                  (directive_name)
+                  (expression_content))
                 (attribute_text)
                 (if_end
                   (directive_name)))))))
       (text)
       (end_tag
         (tag_name)))
+    (text)
+    (if_statement
+      (if_start
+        (directive_name)
+        (expression_content))
+      (text)
+      (if_end
+        (directive_name)))
+    (text)
     (view_end_tag
       (section_tag_name)))
   (text))

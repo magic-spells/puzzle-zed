@@ -178,10 +178,11 @@ static bool scan_template_string(TSLexer *lexer) {
 //                                          this is splitTopLevel's skipDoubled).
 //                                          Every value position uses it (D173
 //                                          V1): interpolations, attribute and
-//                                          prop values, and the {#if},
-//                                          {:else if}, {#unless}, {#case},
-//                                          {#for} and {:when} headers (the last
-//                                          two so a rejected pipe is flagged).
+//                                          prop values. The {#if}, {:else if},
+//                                          {#unless}, {#case}, {#for} and
+//                                          {:when} headers use it too, so a
+//                                          pipe there — a compile error — is
+//                                          split off and flagged.
 //   EXPR_DIRECTIVE @click={ … } {#svg …}  — stops at a depth-0 '}' only. Pipes
 //                                          are NOT formatters here: a handler
 //                                          body is plain JavaScript.

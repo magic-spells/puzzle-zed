@@ -54,9 +54,11 @@
 (directive_name) @keyword
 (formatter_name) @function
 
-; A formatter chain where the compiler rejects one — a {#for} header or a
-; {:when} value (D173 V1). The '|' after an @event handler is not a pipe at all
-; (the handler body is plain JavaScript), so it never reaches either capture.
+; A formatter chain where the compiler rejects one (D173 V1) — any block
+; header: {#if}, {:else if}, {#unless}, {#case} (inline ones in an attribute
+; value too), {#for}, and a {:when} value. '||' is logical OR, never a pipe.
+; The '|' after an @event handler is not a pipe at all (the handler body is
+; plain JavaScript), so it never reaches either capture.
 (invalid_formatter_name) @error
 (attribute_text) @string
 (unquoted_attribute_value) @string

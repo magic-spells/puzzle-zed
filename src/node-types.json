@@ -541,7 +541,11 @@
           "named": true
         },
         {
-          "type": "formatter",
+          "type": "expression_content",
+          "named": true
+        },
+        {
+          "type": "invalid_formatter",
           "named": true
         }
       ]
@@ -691,7 +695,11 @@
           "named": true
         },
         {
-          "type": "formatter",
+          "type": "expression_content",
+          "named": true
+        },
+        {
+          "type": "invalid_formatter",
           "named": true
         }
       ]
@@ -965,7 +973,11 @@
           "named": true
         },
         {
-          "type": "formatter",
+          "type": "expression_content",
+          "named": true
+        },
+        {
+          "type": "invalid_formatter",
           "named": true
         }
       ]
@@ -1680,7 +1692,11 @@
           "named": true
         },
         {
-          "type": "formatter",
+          "type": "expression_content",
+          "named": true
+        },
+        {
+          "type": "invalid_formatter",
           "named": true
         }
       ]

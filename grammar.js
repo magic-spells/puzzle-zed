@@ -321,8 +321,8 @@ module.exports = grammar({
     // a logical-OR ('||') and a '|' inside a string, a /a|b/ regex, or any
     // (), [] or {} stay part of the expression. The same chain is legal in every
     // value position (D173 V1): text, quoted and brace-only attribute values,
-    // component props and marker arguments — all of which parse as this node —
-    // and the {#if}, {:else if}, {#unless} and {#case} headers below.
+    // component props and marker arguments — all of which parse as this node.
+    // Block headers are conditions, not value positions, and take no chain.
     interpolation: $ => seq(
       '{',
       field('value', $.expression_content),
@@ -339,11 +339,14 @@ module.exports = grammar({
     // The compiler's isFormatterName: '-' is legal after the first character.
     formatter_name: _ => /[A-Za-z_$][A-Za-z0-9_$-]*/,
 
-    // A formatter chain where the compiler rejects one — a {#for} header
-    // (collection or either range bound) or a {:when} value (D173 V1). It
-    // parses (no ERROR node) so highlighting can flag the name as invalid.
-    // After a rejected pipe the rest of the header — a `, counter` or another
-    // {:when} value — still parses, so the one mistake is the one flag.
+    // A formatter chain where the compiler rejects one (D173 V1): every block
+    // header — the {#if}, {:else if}, {#unless} and {#case} conditions (inline
+    // ones in a quoted attribute value included), a {#for} header (collection
+    // or either range bound) and a {:when} value. Formatters are for values,
+    // not logic: compute the value in data() and test that field. It parses
+    // (no ERROR node) so highlighting can flag the name as invalid. After a
+    // rejected pipe the rest of the header — a `, counter` or another {:when}
+    // value — still parses, so the one mistake is the one flag.
     _invalid_chain: $ => choice(
       $.invalid_formatter,
       seq(',', $.expression_content),
@@ -377,7 +380,7 @@ module.exports = grammar({
       '#',
       alias(token.immediate('if'), $.directive_name),
       field('condition', $.expression_content),
-      repeat($.formatter),
+      repeat($._invalid_chain),
       '}',
     ),
 
@@ -392,7 +395,7 @@ module.exports = grammar({
       alias(token.immediate('else'), $.directive_name),
       alias('if', $.directive_name),
       field('condition', $.expression_content),
-      repeat($.formatter),
+      repeat($._invalid_chain),
       '}',
     ),
 
@@ -427,7 +430,7 @@ module.exports = grammar({
       '#',
       alias(token.immediate('unless'), $.directive_name),
       field('condition', $.expression_content),
-      repeat($.formatter),
+      repeat($._invalid_chain),
       '}',
     ),
 
@@ -450,7 +453,7 @@ module.exports = grammar({
       '#',
       alias(token.immediate('case'), $.directive_name),
       field('value', $.expression_content),
-      repeat($.formatter),
+      repeat($._invalid_chain),
       '}',
     ),
 

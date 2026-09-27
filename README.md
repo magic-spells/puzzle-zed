@@ -20,11 +20,14 @@ The grammar tracks the **Puzzle 0.8.0** template grammar.
   a `|` inside a string, a regex literal, or parentheses
 - New in 0.8.0 (D173): formatter chains in every value position — brace-only
   attribute values (`title={ price | currency }`), component props and marker
-  arguments, and the `{#if}`, `{:else if}`, `{#unless}` and `{#case}` headers,
-  including an inline `{#if}` inside a quoted attribute value. `@event`
-  handler bodies stay plain JavaScript, so `@click={ a | b }` is a bitwise OR,
-  and a pipe in a `{#for}` header or a `{:when}` value — a compile error — is
-  flagged invalid. Object literals in call and formatter arguments
+  arguments. Block headers are conditions, not values: a pipe in an `{#if}`,
+  `{:else if}`, `{#unless}` or `{#case}` header (an inline one inside a quoted
+  attribute value included), a `{#for}` header or a `{:when}` value is a
+  compile error and is flagged invalid — compute the value in `data()` and
+  test that field. `||` in a header stays logical OR, and a `|` inside
+  parentheses, a string or a regex stays JavaScript. `@event` handler bodies
+  stay plain JavaScript, so `@click={ a | b }` is a bitwise OR. Object
+  literals in call and formatter arguments
   (`{ 'greeting' | t({ name: user.name }) }`) balance as JavaScript
 - Composition markers (`<Children>`, `<Slot>`, `<Portal>`, `<Snippet>`) scoped
   apart from user components, with the lowercase spellings flagged

@@ -21,4 +21,10 @@
   <!--              ^ error -->
   <button @click={ p | q }>r</button>
   <!--                 ^ error -->
+  { x | raw() }
+  <!--  ^ function -->
+  { y | newline_to_br( ) }
+  <!--  ^ function -->
+  { z | raw( 'x' ) }
+  <!--  ^ error -->
 </puzzle-view>

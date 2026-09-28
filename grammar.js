@@ -340,14 +340,16 @@ module.exports = grammar({
     formatter: $ => seq(
       '|',
       field('name', $.formatter_name),
-      optional($.formatter_arguments),
+      optional($._formatter_call),
     ),
 
-    // The compiler's isFormatterName: an identifier, optionally kebab-case,
-    // where every '-' starts a word with a letter (`my-format`). Anything else
-    // after a pipe — `| 0`, `| bit-1`, `| fmt.eur` — is a compile error and
-    // does not parse as a formatter.
-    formatter_name: _ => /[A-Za-z_$][A-Za-z0-9_$]*(-[A-Za-z][A-Za-z0-9_$]*)*/,
+    // Deliberately looser than the compiler's isFormatterName, which is an
+    // identifier, optionally kebab-case, where every '-' starts a word with a
+    // letter (`my-format`). A malformed name after a pipe — `| 0`, `| bit-1`,
+    // `| fmt.eur`, `| fmt-`, `| f--g` — is a compile error, and parsing it
+    // whole as one name (rather than as an ERROR node the queries cannot see)
+    // lets the highlight queries flag it with the compiler's exact rule.
+    formatter_name: _ => /[A-Za-z0-9_$.\-]+/,
 
     // A formatter chain where the compiler rejects one (D173 V1): every block
     // header — the {#if}, {:else if}, {#unless} and {#case} conditions (inline
@@ -366,15 +368,21 @@ module.exports = grammar({
     invalid_formatter: $ => seq(
       '|',
       field('name', alias($.formatter_name, $.invalid_formatter_name)),
-      optional($.formatter_arguments),
+      optional($._formatter_call),
+    ),
+
+    // Empty parentheses are a call with no arguments — `raw()` is `raw` — so
+    // they produce no formatter_arguments node. That keeps "has arguments"
+    // one node test for the markup-formatter queries.
+    _formatter_call: $ => choice(
+      seq('(', ')'),
+      $.formatter_arguments,
     ),
 
     formatter_arguments: $ => seq(
       '(',
-      optional(seq(
-        alias($.formatter_argument, $.expression_content),
-        repeat(seq(',', alias($.formatter_argument, $.expression_content))),
-      )),
+      alias($.formatter_argument, $.expression_content),
+      repeat(seq(',', alias($.formatter_argument, $.expression_content))),
       ')',
     ),
 

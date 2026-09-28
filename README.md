@@ -19,8 +19,8 @@ The grammar tracks the **Puzzle 0.8.0** template grammar.
 - Formatter chains (`{ price | currency('$') }`), told apart from `||` and from
   a `|` inside a string or parentheses. A formatter name is an identifier,
   optionally kebab-case (`my-format`); anything else after a pipe
-  (`{ w / 2 | 0 }`, `{ mask | bit-1 }`) is a syntax error, as it is in the
-  compiler
+  (`{ w / 2 | 0 }`, `{ mask | bit-1 }`, `{ p | fmt.eur }`) is a compile error
+  and is flagged invalid
 - Formatter chains in every value position (D173) — brace-only attribute
   values (`title={ price | currency }`), component props and marker
   arguments. Block headers are conditions, not values: a pipe in an `{#if}`,
@@ -32,7 +32,8 @@ The grammar tracks the **Puzzle 0.8.0** template grammar.
   the same way. `||` stays logical OR everywhere. Object literals in formatter
   arguments (`{ 'cart.count' | t({ count: n }) }`) balance as JavaScript
 - The markup formatters `raw` and `newline_to_br` (D174) scoped as formatters
-  only as the last link of a text interpolation, with no arguments; after
+  only as the last link of a text interpolation, with no arguments (`raw()`
+  counts as none); after
   another formatter, with arguments, in an attribute value, prop or marker
   argument, or directly inside a text-only element (`<textarea>`, `<title>`, …)
   or `<svg>`/`<math>`, they are flagged invalid

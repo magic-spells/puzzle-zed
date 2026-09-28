@@ -1,0 +1,17 @@
+<puzzle-view>
+  { mask | bit-1 }
+  <!--     ^ error -->
+  { w / 2 | 0 }
+  <!--      ^ error -->
+  { p | fmt.eur }
+  <!--  ^ error -->
+  { a | fmt- | f--g }
+  <!--  ^ error -->
+  <!--         ^ error -->
+  { n | compact_number | my-format('x') | $fmt }
+  <!--  ^ function -->
+  <!--                   ^ function -->
+  <!--                                    ^ function -->
+  <p title={ price | 2x }>k</p>
+  <!--               ^ error -->
+</puzzle-view>

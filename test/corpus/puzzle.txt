@@ -2151,11 +2151,9 @@ Template values in the data language (D176)
 What follows a pipe must be a formatter name
 =====================================================
 
-<puzzle-view>{ mask | bit-1 }<p>{ w / 2 | 0 }</p>{ ok }</puzzle-view>
+<puzzle-view>{ mask | bit-1 }<p>{ w / 2 | 0 }</p>{ p | fmt.eur }{ a | fmt- | f--g }{ ok }</puzzle-view>
 
 ---
-
-
 
 (document
   (text)
@@ -2165,20 +2163,59 @@ What follows a pipe must be a formatter name
     (interpolation
       (expression_content)
       (formatter
-        (formatter_name))
-      (ERROR
-        (UNEXPECTED '-')))
+        (formatter_name)))
     (element
       (start_tag
         (tag_name))
       (interpolation
         (expression_content)
-        (ERROR
-          (UNEXPECTED '0')))
+        (formatter
+          (formatter_name)))
       (end_tag
         (tag_name)))
     (interpolation
+      (expression_content)
+      (formatter
+        (formatter_name)))
+    (interpolation
+      (expression_content)
+      (formatter
+        (formatter_name))
+      (formatter
+        (formatter_name)))
+    (interpolation
       (expression_content))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================================
+Empty parentheses are a call with no arguments
+=====================================================
+
+<puzzle-view>{ x | raw() }{ y | newline_to_br( ) }{ z | f('a') }</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (interpolation
+      (expression_content)
+      (formatter
+        (formatter_name)))
+    (interpolation
+      (expression_content)
+      (formatter
+        (formatter_name)))
+    (interpolation
+      (expression_content)
+      (formatter
+        (formatter_name)
+        (formatter_arguments
+          (expression_content))))
     (view_end_tag
       (section_tag_name)))
   (text))

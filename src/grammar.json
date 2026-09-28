@@ -993,7 +993,7 @@
           "members": [
             {
               "type": "SYMBOL",
-              "name": "formatter_arguments"
+              "name": "_formatter_call"
             },
             {
               "type": "BLANK"
@@ -1004,7 +1004,7 @@
     },
     "formatter_name": {
       "type": "PATTERN",
-      "value": "[A-Za-z_$][A-Za-z0-9_$]*(-[A-Za-z][A-Za-z0-9_$]*)*"
+      "value": "[A-Za-z0-9_$.\\-]+"
     },
     "_invalid_chain": {
       "type": "CHOICE",
@@ -1053,12 +1053,34 @@
           "members": [
             {
               "type": "SYMBOL",
-              "name": "formatter_arguments"
+              "name": "_formatter_call"
             },
             {
               "type": "BLANK"
             }
           ]
+        }
+      ]
+    },
+    "_formatter_call": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "("
+            },
+            {
+              "type": "STRING",
+              "value": ")"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "formatter_arguments"
         }
       ]
     },
@@ -1070,47 +1092,34 @@
           "value": "("
         },
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SEQ",
-              "members": [
-                {
-                  "type": "ALIAS",
-                  "content": {
-                    "type": "SYMBOL",
-                    "name": "formatter_argument"
-                  },
-                  "named": true,
-                  "value": "expression_content"
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "formatter_argument"
+          },
+          "named": true,
+          "value": "expression_content"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": ","
+              },
+              {
+                "type": "ALIAS",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "formatter_argument"
                 },
-                {
-                  "type": "REPEAT",
-                  "content": {
-                    "type": "SEQ",
-                    "members": [
-                      {
-                        "type": "STRING",
-                        "value": ","
-                      },
-                      {
-                        "type": "ALIAS",
-                        "content": {
-                          "type": "SYMBOL",
-                          "name": "formatter_argument"
-                        },
-                        "named": true,
-                        "value": "expression_content"
-                      }
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
+                "named": true,
+                "value": "expression_content"
+              }
+            ]
+          }
         },
         {
           "type": "STRING",

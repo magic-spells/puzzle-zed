@@ -52,12 +52,21 @@
 (attribute_name) @attribute
 (event_name) @function
 (directive_name) @keyword
-; Every formatter name but the two markup formatters.
+; A formatter name is an identifier, optionally kebab-case, where every '-'
+; starts a word with a letter — the compiler's isFormatterName. formatter_name
+; parses looser on purpose, so a malformed one (`| 0`, `| bit-1`, `| fmt.eur`,
+; `| fmt-`) is flagged whole here instead of vanishing into an ERROR node.
+((formatter_name) @error
+  (#not-match? @error "^[A-Za-z_$][A-Za-z0-9_$]*(-[A-Za-z][A-Za-z0-9_$]*)*$"))
+
+; Every well-formed formatter name but the two markup formatters.
 ((formatter_name) @function
+  (#match? @function "^[A-Za-z_$][A-Za-z0-9_$]*(-[A-Za-z][A-Za-z0-9_$]*)*$")
   (#not-any-of? @function "raw" "newline_to_br"))
 
 ; The markup formatters `raw` and `newline_to_br` (D174) render HTML, so each
-; is legal only as the LAST link of a TEXT interpolation, with no arguments,
+; is legal only as the LAST link of a TEXT interpolation, with no arguments
+; (empty parentheses, `raw()`, are no arguments and make no formatter_arguments),
 ; and not directly inside an element whose content is text (<textarea>,
 ; <title>, …) or foreign (<svg>, <math>). Every other placement is a compile
 ; error. The patterns below split the two names into exactly one legal and

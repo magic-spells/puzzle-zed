@@ -30,11 +30,8 @@ module.exports = grammar({
     $.expression_content,
     $.inline_comment,
     $.block_comment,
-    // Pipe-free expressions — an @event handler body and the {#svg …} path —
-    // aliased to expression_content everywhere they appear. They differ from a
-    // value expression only in that a top-level '|' is NOT a formatter pipe
-    // there: a handler body is plain JavaScript, so `@click={ a | b }` is a
-    // bitwise OR.
+    // The pipe-free {#svg …} path, aliased to expression_content. It differs
+    // from a value expression only in that a top-level '|' does not end it.
     $.directive_expression,
     // One formatter argument, aliased to expression_content so the TypeScript
     // injection covers it. Stops at a top-level ',' or ')'.
@@ -244,11 +241,15 @@ module.exports = grammar({
       )),
     ),
 
-    // An @event value is a handler body, not a value position: it takes no
-    // formatter chain, so a top-level '|' stays JavaScript (bitwise OR).
+    // An @event value is a handler body, not a value position: it stays
+    // JavaScript, but it takes no formatter chain and there is no bitwise OR in
+    // a template (D176), so any single '|' in it is a compile error. A
+    // top-level one splits off into the same invalid chain the block headers
+    // use; '||' stays logical OR.
     event_handler: $ => seq(
       '{',
-      field('value', alias($.directive_expression, $.expression_content)),
+      field('value', $.expression_content),
+      repeat($._invalid_chain),
       '}',
     ),
 
@@ -323,6 +324,12 @@ module.exports = grammar({
     // value position (D173 V1): text, quoted and brace-only attribute values,
     // component props and marker arguments — all of which parse as this node.
     // Block headers are conditions, not value positions, and take no chain.
+    //
+    // The expression itself is the D176 data language — paths, literals and
+    // operators, with `.size` for a count — but it stays one opaque token
+    // injected as TypeScript. What it may contain (no calls on data, no
+    // `.length`, no arrows, template literals or regexes) is the compiler's
+    // to enforce, not this grammar's.
     interpolation: $ => seq(
       '{',
       field('value', $.expression_content),
@@ -336,15 +343,19 @@ module.exports = grammar({
       optional($.formatter_arguments),
     ),
 
-    // The compiler's isFormatterName: '-' is legal after the first character.
-    formatter_name: _ => /[A-Za-z_$][A-Za-z0-9_$-]*/,
+    // The compiler's isFormatterName: an identifier, optionally kebab-case,
+    // where every '-' starts a word with a letter (`my-format`). Anything else
+    // after a pipe — `| 0`, `| bit-1`, `| fmt.eur` — is a compile error and
+    // does not parse as a formatter.
+    formatter_name: _ => /[A-Za-z_$][A-Za-z0-9_$]*(-[A-Za-z][A-Za-z0-9_$]*)*/,
 
     // A formatter chain where the compiler rejects one (D173 V1): every block
     // header — the {#if}, {:else if}, {#unless} and {#case} conditions (inline
     // ones in a quoted attribute value included), a {#for} header (collection
-    // or either range bound) and a {:when} value. Formatters are for values,
-    // not logic: compute the value in data() and test that field. It parses
-    // (no ERROR node) so highlighting can flag the name as invalid. After a
+    // or either range bound) and a {:when} value — and an @event handler body
+    // (D176). Formatters are for values, not logic: compute the value in
+    // data() and test that field. It parses (no ERROR node) so highlighting
+    // can flag the name as invalid. After a
     // rejected pipe the rest of the header — a `, counter` or another {:when}
     // value — still parses, so the one mistake is the one flag.
     _invalid_chain: $ => choice(

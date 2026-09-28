@@ -180,12 +180,11 @@ static bool scan_template_string(TSLexer *lexer) {
 //                                          V1): interpolations, attribute and
 //                                          prop values. The {#if}, {:else if},
 //                                          {#unless}, {#case}, {#for} and
-//                                          {:when} headers use it too, so a
-//                                          pipe there — a compile error — is
-//                                          split off and flagged.
-//   EXPR_DIRECTIVE @click={ … } {#svg …}  — stops at a depth-0 '}' only. Pipes
-//                                          are NOT formatters here: a handler
-//                                          body is plain JavaScript.
+//                                          {:when} headers and @event handler
+//                                          bodies use it too, so a pipe there —
+//                                          a compile error — is split off and
+//                                          flagged.
+//   EXPR_DIRECTIVE {#svg …}               — stops at a depth-0 '}' only.
 //   EXPR_ARG       currency('$', 2)      — stops at a depth-0 ')' or ',' (and,
 //                                          for error recovery, a depth-0 '}').
 //

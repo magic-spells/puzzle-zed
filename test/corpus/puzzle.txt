@@ -307,7 +307,8 @@ Inline directives and balanced braces
   <div
     class="row {#if current}is-current{:else}is-idle{/if}"
     style="background:{ theme.colors[mode] }"
-    data-value={ format({ title: `Now ${track.title}` }) }>
+    data-value={ this.format({ title: track.title }) }
+    @click={ announce({ title: `Now ${track.title}` }) }>
     { track.title }
   </div>
 </puzzle-view>
@@ -350,6 +351,11 @@ Inline directives and balanced braces
           (normal_attribute
             (attribute_name)
             (interpolation
+              (expression_content))))
+        (attribute
+          (event_attribute
+            (event_name)
+            (event_handler
               (expression_content)))))
       (text)
       (interpolation
@@ -692,7 +698,7 @@ Formatter pipes and their arguments
 Pipes that are not formatters
 =====================================
 
-<puzzle-view>{ a || b }{ tags.join('|') }{ s.replace(/a|b/g, '-') }</puzzle-view>
+<puzzle-view>{ a || b }{ tags | join('|') }{ sep ?? '|' }{ this.clean(s, /a|b/g) }</puzzle-view>
 
 ---
 
@@ -703,6 +709,12 @@ Pipes that are not formatters
       (section_tag_name))
     (interpolation
       (expression_content))
+    (interpolation
+      (expression_content)
+      (formatter
+        (formatter_name)
+        (formatter_arguments
+          (expression_content))))
     (interpolation
       (expression_content))
     (interpolation
@@ -1606,7 +1618,7 @@ Pipes rejected in inline attribute headers (D173 V1)
   (text))
 
 =============================================================
-Logical OR and bitwise OR in condition headers are plain JS
+Logical OR and nested pipes in condition headers are not formatter pipes
 =============================================================
 
 <puzzle-view>
@@ -1614,7 +1626,7 @@ Logical OR and bitwise OR in condition headers are plain JS
   {#unless a || b}z{/unless}
   {#case a || b}{/case}
   <b class="{#if a || b}on{/if}">e</b>
-  {#if /a|b/.test(s) && t === 'x|y'}r{/if}
+  {#if this.matches(s, /a|b/) && t === 'x|y'}r{/if}
 </puzzle-view>
 
 ---
@@ -1685,7 +1697,7 @@ Logical OR and bitwise OR in condition headers are plain JS
   (text))
 
 =====================================================
-Logical OR and parenthesized bitwise OR are not pipes
+Logical OR and a parenthesized pipe are not formatter pipes
 =====================================================
 
 <puzzle-view>{ a || b }<i title={ a || b }></i>{ (flags | mask) }</puzzle-view>
@@ -1716,10 +1728,10 @@ Logical OR and parenthesized bitwise OR are not pipes
   (text))
 
 ============================================
-Event handler bodies take no formatter chain
+Pipes rejected in event handler bodies (D176)
 ============================================
 
-<puzzle-view><button @click={ a | b }>f</button></puzzle-view>
+<puzzle-view><button @click={ a | b } @input={ a || b } @keyup={ save(x | trim) }>f</button></puzzle-view>
 
 ---
 
@@ -1731,6 +1743,18 @@ Event handler bodies take no formatter chain
     (element
       (start_tag
         (tag_name)
+        (attribute
+          (event_attribute
+            (event_name)
+            (event_handler
+              (expression_content)
+              (invalid_formatter
+                (invalid_formatter_name)))))
+        (attribute
+          (event_attribute
+            (event_name)
+            (event_handler
+              (expression_content))))
         (attribute
           (event_attribute
             (event_name)
@@ -1751,7 +1775,7 @@ Object literals in formatter and call arguments (D173 V8)
   { 'greeting' | t({ name: user.name }) } after
   { photo | resize({ height: 480 }) } after
   <button @click={ save({ id: todo.id }) }>g</button> tail
-  { fn({ a: 1 }) } done
+  { this.fn({ a: 1 }) } done
 </puzzle-view>
 
 ---
@@ -1935,6 +1959,226 @@ Quoted attribute values allow the other quote and angle brackets
       (end_tag
         (tag_name)))
     (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================================
+Formatter names are identifiers, optionally kebab-case
+=====================================================
+
+<puzzle-view>{ n | compact_number }{ d | my-format('x') }{ v | $fmt | t2 }</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (interpolation
+      (expression_content)
+      (formatter
+        (formatter_name)))
+    (interpolation
+      (expression_content)
+      (formatter
+        (formatter_name)
+        (formatter_arguments
+          (expression_content))))
+    (interpolation
+      (expression_content)
+      (formatter
+        (formatter_name))
+      (formatter
+        (formatter_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================================
+Markup formatters parse like any other formatter
+=====================================================
+
+<puzzle-view>
+  <p>{ post.body | raw }</p>
+  { note | trim | newline_to_br }
+  <p title={ html | raw }>{ html | raw | upcase }</p>
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (element
+      (start_tag
+        (tag_name))
+      (interpolation
+        (expression_content)
+        (formatter
+          (formatter_name)))
+      (end_tag
+        (tag_name)))
+    (text)
+    (interpolation
+      (expression_content)
+      (formatter
+        (formatter_name))
+      (formatter
+        (formatter_name)))
+    (text)
+    (element
+      (start_tag
+        (tag_name)
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (interpolation
+              (expression_content)
+              (formatter
+                (formatter_name))))))
+      (interpolation
+        (expression_content)
+        (formatter
+          (formatter_name))
+        (formatter
+          (formatter_name)))
+      (end_tag
+        (tag_name)))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================================
+Template values in the data language (D176)
+=====================================================
+
+<puzzle-view>
+  {#if todos.size > 0}
+    <p class={ [active && 'on', 'row'] }>{ title.size } of { items[items.size - 1].name }</p>
+  {/if}
+  <button disabled={ !this.canAdd }>{ 'cart.count' | t({ count: n, unit }) }</button>
+  { price * qty | currency } { subtitle ?? 'Untitled' } { followers | compact_number }
+  { createdAt | datetime('short') } { n | pluralize('comment') }
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (if_statement
+      (if_start
+        (directive_name)
+        (expression_content))
+      (text)
+      (element
+        (start_tag
+          (tag_name)
+          (attribute
+            (normal_attribute
+              (attribute_name)
+              (interpolation
+                (expression_content)))))
+        (interpolation
+          (expression_content))
+        (text)
+        (interpolation
+          (expression_content))
+        (end_tag
+          (tag_name)))
+      (text)
+      (if_end
+        (directive_name)))
+    (text)
+    (element
+      (start_tag
+        (tag_name)
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (interpolation
+              (expression_content)))))
+      (interpolation
+        (expression_content)
+        (formatter
+          (formatter_name)
+          (formatter_arguments
+            (expression_content))))
+      (end_tag
+        (tag_name)))
+    (text)
+    (interpolation
+      (expression_content)
+      (formatter
+        (formatter_name)))
+    (text)
+    (interpolation
+      (expression_content))
+    (text)
+    (interpolation
+      (expression_content)
+      (formatter
+        (formatter_name)))
+    (text)
+    (interpolation
+      (expression_content)
+      (formatter
+        (formatter_name)
+        (formatter_arguments
+          (expression_content))))
+    (text)
+    (interpolation
+      (expression_content)
+      (formatter
+        (formatter_name)
+        (formatter_arguments
+          (expression_content))))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================================
+What follows a pipe must be a formatter name
+=====================================================
+
+<puzzle-view>{ mask | bit-1 }<p>{ w / 2 | 0 }</p>{ ok }</puzzle-view>
+
+---
+
+
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (interpolation
+      (expression_content)
+      (formatter
+        (formatter_name))
+      (ERROR
+        (UNEXPECTED '-')))
+    (element
+      (start_tag
+        (tag_name))
+      (interpolation
+        (expression_content)
+        (ERROR
+          (UNEXPECTED '0')))
+      (end_tag
+        (tag_name)))
+    (interpolation
+      (expression_content))
     (view_end_tag
       (section_tag_name)))
   (text))

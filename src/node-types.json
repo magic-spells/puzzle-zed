@@ -786,6 +786,20 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "expression_content",
+          "named": true
+        },
+        {
+          "type": "invalid_formatter",
+          "named": true
+        }
+      ]
     }
   },
   {

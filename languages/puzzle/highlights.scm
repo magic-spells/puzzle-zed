@@ -48,13 +48,98 @@
 (attribute_name) @attribute
 (event_name) @function
 (directive_name) @keyword
-(formatter_name) @function
+; Every formatter name but the two markup formatters.
+((formatter_name) @function
+  (#not-any-of? @function "raw" "newline_to_br"))
+
+; The markup formatters `raw` and `newline_to_br` (D174) render HTML, so each
+; is legal only as the LAST link of a TEXT interpolation, with no arguments,
+; and not directly inside an element whose content is text (<textarea>,
+; <title>, …) or foreign (<svg>, <math>). Every other placement is a compile
+; error. The patterns below split the two names into exactly one legal and
+; one invalid capture per node. The element test reads the start tag's text
+; rather than capturing its tag_name, so the tag keeps its one @tag capture. A
+; markup formatter nested deeper inside a text-only element (under an {#if},
+; say) is left to the compiler.
+([
+  (document
+    (interpolation (formatter name: (formatter_name) @function .) .))
+  (view_element
+    (interpolation (formatter name: (formatter_name) @function .) .))
+  (skeleton_element
+    (interpolation (formatter name: (formatter_name) @function .) .))
+  (if_statement
+    (interpolation (formatter name: (formatter_name) @function .) .))
+  (else_if_block
+    (interpolation (formatter name: (formatter_name) @function .) .))
+  (else_block
+    (interpolation (formatter name: (formatter_name) @function .) .))
+  (unless_statement
+    (interpolation (formatter name: (formatter_name) @function .) .))
+  (when_block
+    (interpolation (formatter name: (formatter_name) @function .) .))
+  (case_else_block
+    (interpolation (formatter name: (formatter_name) @function .) .))
+  (for_statement
+    (interpolation (formatter name: (formatter_name) @function .) .))
+  (for_else_block
+    (interpolation (formatter name: (formatter_name) @function .) .))
+  ]
+  (#any-of? @function "raw" "newline_to_br"))
+
+((element
+  (start_tag) @_start
+  (interpolation (formatter name: (formatter_name) @function .) .))
+  (#any-of? @function "raw" "newline_to_br")
+  (#not-match? @_start "^<(script|style|textarea|title|noscript|xmp|iframe|noembed|noframes|plaintext|svg|math)[\\s/>]"))
+
+((element
+  (start_tag) @_start
+  (interpolation (formatter name: (formatter_name) @invalid .) .))
+  (#any-of? @invalid "raw" "newline_to_br")
+  (#match? @_start "^<(script|style|textarea|title|noscript|xmp|iframe|noembed|noframes|plaintext|svg|math)[\\s/>]"))
+
+; With arguments, or followed by another formatter.
+((formatter
+  name: (formatter_name) @invalid
+  (formatter_arguments))
+  (#any-of? @invalid "raw" "newline_to_br"))
+
+((interpolation
+  (formatter name: (formatter_name) @invalid .)
+  .
+  (formatter))
+  (#any-of? @invalid "raw" "newline_to_br"))
+
+; In an attribute value, a component prop or a marker argument.
+([
+  (normal_attribute
+    value: (interpolation (formatter name: (formatter_name) @invalid .) .))
+  (quoted_attribute_value
+    (interpolation (formatter name: (formatter_name) @invalid .) .))
+  (attribute_if_statement
+    (interpolation (formatter name: (formatter_name) @invalid .) .))
+  (attribute_else_if_block
+    (interpolation (formatter name: (formatter_name) @invalid .) .))
+  (attribute_else_block
+    (interpolation (formatter name: (formatter_name) @invalid .) .))
+  (attribute_unless_statement
+    (interpolation (formatter name: (formatter_name) @invalid .) .))
+  (attribute_when_block
+    (interpolation (formatter name: (formatter_name) @invalid .) .))
+  (attribute_case_else_block
+    (interpolation (formatter name: (formatter_name) @invalid .) .))
+  (attribute_for_statement
+    (interpolation (formatter name: (formatter_name) @invalid .) .))
+  (attribute_for_else_block
+    (interpolation (formatter name: (formatter_name) @invalid .) .))
+  ]
+  (#any-of? @invalid "raw" "newline_to_br"))
 
 ; A formatter chain where the compiler rejects one (D173 V1) — any block
 ; header: {#if}, {:else if}, {#unless}, {#case} (inline ones in an attribute
-; value too), {#for}, and a {:when} value. '||' is logical OR, never a pipe.
-; The '|' after an @event handler is not a pipe at all (the handler body is
-; plain JavaScript), so it never reaches either capture.
+; value too), {#for}, and a {:when} value — and an @event handler body, which
+; is JavaScript but has no bitwise OR (D176). '||' is logical OR, never a pipe.
 (invalid_formatter_name) @invalid
 (attribute_text) @string
 (unquoted_attribute_value) @string

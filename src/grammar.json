@@ -752,13 +752,15 @@
           "type": "FIELD",
           "name": "value",
           "content": {
-            "type": "ALIAS",
-            "content": {
-              "type": "SYMBOL",
-              "name": "directive_expression"
-            },
-            "named": true,
-            "value": "expression_content"
+            "type": "SYMBOL",
+            "name": "expression_content"
+          }
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_invalid_chain"
           }
         },
         {
@@ -1002,7 +1004,7 @@
     },
     "formatter_name": {
       "type": "PATTERN",
-      "value": "[A-Za-z_$][A-Za-z0-9_$-]*"
+      "value": "[A-Za-z_$][A-Za-z0-9_$]*(-[A-Za-z][A-Za-z0-9_$]*)*"
     },
     "_invalid_chain": {
       "type": "CHOICE",

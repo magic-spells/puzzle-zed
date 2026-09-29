@@ -2846,3 +2846,107 @@ A second {:else} is its own node inside the first
     (view_end_tag
       (section_tag_name)))
   (text))
+
+=========================================================================
+A slash after a non-ASCII name, a trailing-dot number or `of` is division
+=========================================================================
+
+<puzzle-view><p>{ 金額 / 2 }{ 5. / 2 }{ of / 2 }{ a.価格 / 2 }{ 𝑥 / 2 }</p><br/></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        (tag_name))
+      (interpolation
+        (binary_expression
+          (identifier)
+          (number)))
+      (interpolation
+        (binary_expression
+          (number)
+          (number)))
+      (interpolation
+        (binary_expression
+          (identifier)
+          (number)))
+      (interpolation
+        (binary_expression
+          (member_expression
+            (identifier)
+            (property_identifier))
+          (number)))
+      (interpolation
+        (binary_expression
+          (identifier)
+          (number)))
+      (end_tag
+        (tag_name)))
+    (void_element
+      (void_tag_name))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+===========================================================================================
+Raw brace values: a slash after a non-ASCII name, a trailing-dot number or `of` is division
+===========================================================================================
+
+<puzzle-view>{#raw}<b a={ café / 2 } b={ 金額 / 2 } c={ 5. / 2 } d={ of / 2 } e={ a.価格 / 2 } f={ 😀 / 2 } g={ 価格new / 2 }>x</b><br/>{/raw}<p>{ after }</p></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (raw_block
+      (raw_start
+        (directive_name))
+      (raw_element
+        (raw_start_tag
+          (raw_tag_name)
+          (raw_attribute
+            (raw_attribute_name)
+            (raw_brace_value))
+          (raw_attribute
+            (raw_attribute_name)
+            (raw_brace_value))
+          (raw_attribute
+            (raw_attribute_name)
+            (raw_brace_value))
+          (raw_attribute
+            (raw_attribute_name)
+            (raw_brace_value))
+          (raw_attribute
+            (raw_attribute_name)
+            (raw_brace_value))
+          (raw_attribute
+            (raw_attribute_name)
+            (raw_brace_value))
+          (raw_attribute
+            (raw_attribute_name)
+            (raw_brace_value)))
+        (raw_text)
+        (raw_end_tag
+          (raw_tag_name)))
+      (raw_void_element
+        (void_tag_name))
+      (raw_end
+        (directive_name)))
+    (element
+      (start_tag
+        (tag_name))
+      (interpolation
+        (identifier))
+      (end_tag
+        (tag_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))

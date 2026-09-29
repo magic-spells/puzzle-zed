@@ -173,13 +173,15 @@ static bool scan_template_string(TSLexer *lexer) {
 // (lexskip.go): strings, template literals, regex literals and comments are
 // opaque, and (), [], {} nest. Regex-vs-division follows LexSkip: a '/' after
 // a token that can END an expression is division, otherwise it opens a regex
-// literal.
+// literal. A non-ASCII character (the tail of a name like `café` or `金額`) and
+// a '.' (a trailing-dot number, `5.`) both end an expression, as in LexSkip.
 // ---------------------------------------------------------------------------
 
 // LexSkip's threaded state, carried through every balanced scan in this file.
 typedef struct {
     bool ends_expr;  // prevEndsExpr: the previous token can END an expression
     bool after_dot;  // the last significant byte was '.'
+    bool after_nonascii;  // the character just before is non-ASCII
 } LexState;
 
 static bool expr_is_ident_start(int32_t c) {
@@ -191,10 +193,11 @@ static bool expr_is_ident_char(int32_t c) {
 }
 
 // Identifier keywords that CANNOT end an expression, so a '/' right after one
-// opens a regex literal. Mirrors lexRegexPrecedingKeywords in lexskip.go.
+// opens a regex literal. Mirrors lexRegexPrecedingKeywords in lexskip.go:
+// `of` is not one, since a template field named `of` is data.
 static bool expr_is_regex_preceding_keyword(const char *word) {
     static const char *const kw[] = {
-        "return", "typeof", "instanceof", "in", "of", "void", "delete",
+        "return", "typeof", "instanceof", "in", "void", "delete",
         "new", "do", "else", "yield", "await", "case",
     };
     for (size_t i = 0; i < sizeof(kw) / sizeof(kw[0]); i++) {
@@ -249,6 +252,8 @@ static void scan_regex_body(TSLexer *lexer) {
 // exactly the failure DOC-COMPILER-DESIGN.md §c warns about.
 static bool lex_skip(TSLexer *lexer, LexState *st) {
     int32_t c = lexer->lookahead;
+    bool after_nonascii = st->after_nonascii;
+    st->after_nonascii = false;
 
     if (c == '\'' || c == '"') {
         scan_quoted_string(lexer, c);
@@ -298,10 +303,12 @@ static bool lex_skip(TSLexer *lexer, LexState *st) {
             advance(lexer);
         }
         buf[n] = '\0';
-        // A keyword used as a property name (`.return`) still ends an
-        // expression; a bare keyword does not. An identifier too long to be any
-        // keyword obviously ends one.
-        st->ends_expr = after_dot || overflow || !expr_is_regex_preceding_keyword(buf);
+        // A keyword used as a property name (`.return`), or an ASCII run
+        // straight after a non-ASCII character (the tail of one name,
+        // `価格new`), still ends an expression; a bare keyword does not. An
+        // identifier too long to be any keyword obviously ends one.
+        st->ends_expr = after_dot || after_nonascii || overflow ||
+                        !expr_is_regex_preceding_keyword(buf);
         st->after_dot = false;
         return true;
     }
@@ -330,13 +337,24 @@ static bool lex_skip(TSLexer *lexer, LexState *st) {
     return false;
 }
 
-// Fold one plain byte — one lex_skip did NOT consume — into the state.
-// Mirrors LexPlainEndsExpr: a digit or a closing )/]/} ends an expression,
-// whitespace is insignificant, everything else means the next '/' opens a regex.
+// Fold one plain character — one lex_skip did NOT consume — into the state.
+// Mirrors LexPlainEndsExpr: a digit, a '.', a closing )/]/} or any non-ASCII
+// character ends an expression (outside a string or comment a non-ASCII
+// character belongs to a name, and a '.' ends a number or leads a property
+// name), whitespace is insignificant, everything else means the next '/' opens
+// a regex.
 static void lex_plain(LexState *st, int32_t c) {
+    st->after_nonascii = (c >= 0x80);
+    if (c >= 0x80) {
+        // LexSkip folds bytes, so even a non-ASCII space (U+00A0) ends one.
+        st->ends_expr = true;
+        st->after_dot = false;
+        return;
+    }
     if (iswspace(c)) return;
     st->after_dot = (c == '.');
-    st->ends_expr = (c == ')' || c == ']' || c == '}' || (c >= '0' && c <= '9'));
+    st->ends_expr = (c == ')' || c == ']' || c == '}' || c == '.' ||
+                     (c >= '0' && c <= '9'));
 }
 
 // The exact closer allowlist. '{/' plus one of these plus '}' is a block
@@ -354,7 +372,7 @@ static bool is_closer_keyword(const char *word) {
 static bool scan_directive_expression(TSLexer *lexer) {
     bool advanced = false;
     int depth = 0;
-    LexState st = {false, false};
+    LexState st = {false, false, false};
 
     while (iswspace(lexer->lookahead)) skip(lexer);
     if (lexer->lookahead == '}') return false;
@@ -435,7 +453,7 @@ static bool scan_raw_brace_value(TSLexer *lexer) {
     advance(lexer);
 
     int depth = 1;
-    LexState st = {false, false};
+    LexState st = {false, false, false};
     bool first = true;
 
     while (!lexer->eof(lexer)) {

@@ -1,0 +1,58 @@
+<puzzle-view>
+  <p>{ café / 2 }<br/>after</p>
+  <!--      ^ operator -->
+  <!--            ^ tag -->
+  <p>{ 金額 / 2 }<br/>after</p>
+  <!--    ^ operator -->
+  <!--          ^ tag -->
+  {#if 価格 / 2 > 1}<br/>{/if}<i>after</i>
+  <!--    ^ operator -->
+  <!--             ^ tag -->
+  <p>{ 5. / 2 }<br/>after</p>
+  <!--    ^ operator -->
+  <!--          ^ tag -->
+  <p>{ of / 2 }<br/>after</p>
+  <!--    ^ operator -->
+  <!--          ^ tag -->
+  <b title={ 価格 / 2 }><br/>after</b>
+  <!--          ^ operator -->
+  <!--                 ^ tag -->
+  <p>{ a.価格 / 2 }<br/>after</p>
+  <!--      ^ operator -->
+  <!--            ^ tag -->
+  <p>{ 𝑥 / 2 }<br/>after</p>
+  <!--   ^ operator -->
+  <!--         ^ tag -->
+  <p>{ 金額/2 }<br/>after</p>
+  <!--   ^ operator -->
+  <!--        ^ tag -->
+  <p>{ (金額 / 2) + f(価格 / 3) }<br/>after</p>
+  <!--     ^ operator -->
+  <!--                 ^ operator -->
+  <!--                        ^ tag -->
+  <p>{ `${金額 / 2}` }<br/>after</p>
+  <!--       ^ operator -->
+  <!--               ^ tag -->
+  <p>{ ok ? 5. / 2 : 1 }<br/>after</p>
+  <!--         ^ operator -->
+  <!--                   ^ tag -->
+  <button @click={ save(5. / 2) }><br/>after</button>
+  <!--                     ^ operator -->
+  <!--                             ^ tag -->
+  {#raw}<b t={ café / 2 }>x</b>{/raw}<i>{ live }</i>
+  <!--                                    ^ variable -->
+  {#raw}<b t={ 金額 / 2 }>x</b>{/raw}<i>{ live }</i>
+  <!--                                  ^ variable -->
+  {#raw}<b t={ 5. / 2 }>x</b>{/raw}<i>{ live }</i>
+  <!--                                  ^ variable -->
+  {#raw}<b t={ of / 2 }>x</b>{/raw}<i>{ live }</i>
+  <!--                                  ^ variable -->
+  {#raw}<b t={ a.価格 / 2 }>x</b>{/raw}<i>{ live }</i>
+  <!--                                    ^ variable -->
+  {#raw}<b t={ 😀 / 2 }>x</b>{/raw}<i>{ live }</i>
+  <!--                                 ^ variable -->
+  {#raw}<b t={ 価格new / 2 }>x</b>{/raw}<i>{ live }</i>
+  <!--                                     ^ variable -->
+  {#raw}<b t={ x = /}/ }>x</b>{/raw}<i>{ live }</i>
+  <!--                                   ^ variable -->
+</puzzle-view>

@@ -2399,3 +2399,450 @@ Excluded operators still parse as operators
     (view_end_tag
       (section_tag_name)))
   (text))
+
+=================================================
+Raw block hides section close tags (splitter P1b)
+=================================================
+
+<puzzle-view>
+<pre>{#raw}<puzzle-view>{ sample }</puzzle-view>{/raw}</pre>
+<pre>{#raw}<script>const a = '{';</script>{/raw}</pre>
+<pre>{#raw}<puzzle-skeleton>{ s }</puzzle-skeleton>{/raw}</pre>
+<p>{ after }</p>
+</puzzle-view>
+<puzzle-skeleton><pre>{#raw}<puzzle-skeleton>{ s }</puzzle-skeleton>{/raw}</pre><i>{ live }</i></puzzle-skeleton>
+<script>
+const x = 1;
+</script>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (element
+      (start_tag
+        (tag_name))
+      (raw_block
+        (raw_start
+          (directive_name))
+        (raw_element
+          (raw_start_tag
+            (raw_tag_name))
+          (raw_text)
+          (raw_end_tag
+            (raw_tag_name)))
+        (raw_end
+          (directive_name)))
+      (end_tag
+        (tag_name)))
+    (text)
+    (element
+      (start_tag
+        (tag_name))
+      (raw_block
+        (raw_start
+          (directive_name))
+        (raw_element
+          (raw_start_tag
+            (raw_tag_name))
+          (raw_text)
+          (raw_end_tag
+            (raw_tag_name)))
+        (raw_end
+          (directive_name)))
+      (end_tag
+        (tag_name)))
+    (text)
+    (element
+      (start_tag
+        (tag_name))
+      (raw_block
+        (raw_start
+          (directive_name))
+        (raw_element
+          (raw_start_tag
+            (raw_tag_name))
+          (raw_text)
+          (raw_end_tag
+            (raw_tag_name)))
+        (raw_end
+          (directive_name)))
+      (end_tag
+        (tag_name)))
+    (text)
+    (element
+      (start_tag
+        (tag_name))
+      (interpolation
+        (identifier))
+      (end_tag
+        (tag_name)))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text)
+  (skeleton_element
+    (skeleton_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        (tag_name))
+      (raw_block
+        (raw_start
+          (directive_name))
+        (raw_element
+          (raw_start_tag
+            (raw_tag_name))
+          (raw_text)
+          (raw_end_tag
+            (raw_tag_name)))
+        (raw_end
+          (directive_name)))
+      (end_tag
+        (tag_name)))
+    (element
+      (start_tag
+        (tag_name))
+      (interpolation
+        (identifier))
+      (end_tag
+        (tag_name)))
+    (skeleton_end_tag
+      (section_tag_name)))
+  (text)
+  (script_element
+    (script_start_tag
+      (section_tag_name))
+    (script_content)
+    (script_end_tag
+      (section_tag_name)))
+  (text))
+
+================================
+Void elements need no slash
+================================
+
+<puzzle-view>
+<p>a<br>b<br/>c<br />d</p>
+<label>Name <input type="text" value={ v } readonly> required</label>
+<div><area><base><br><col><embed><hr><img src="a.png"><input><link><meta><source><track><wbr><span>x</span></div>
+{#raw}<p>a<br>b</p>{/raw}
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (element
+      (start_tag
+        (tag_name))
+      (text)
+      (void_element
+        (void_tag_name))
+      (text)
+      (void_element
+        (void_tag_name))
+      (text)
+      (void_element
+        (void_tag_name))
+      (text)
+      (end_tag
+        (tag_name)))
+    (text)
+    (element
+      (start_tag
+        (tag_name))
+      (text)
+      (void_element
+        (void_tag_name)
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (quoted_attribute_value
+              (attribute_text))))
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (interpolation
+              (identifier))))
+        (attribute
+          (normal_attribute
+            (attribute_name))))
+      (text)
+      (end_tag
+        (tag_name)))
+    (text)
+    (element
+      (start_tag
+        (tag_name))
+      (void_element
+        (void_tag_name))
+      (void_element
+        (void_tag_name))
+      (void_element
+        (void_tag_name))
+      (void_element
+        (void_tag_name))
+      (void_element
+        (void_tag_name))
+      (void_element
+        (void_tag_name))
+      (void_element
+        (void_tag_name)
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (quoted_attribute_value
+              (attribute_text)))))
+      (void_element
+        (void_tag_name))
+      (void_element
+        (void_tag_name))
+      (void_element
+        (void_tag_name))
+      (void_element
+        (void_tag_name))
+      (void_element
+        (void_tag_name))
+      (void_element
+        (void_tag_name))
+      (element
+        (start_tag
+          (tag_name))
+        (text)
+        (end_tag
+          (tag_name)))
+      (end_tag
+        (tag_name)))
+    (text)
+    (raw_block
+      (raw_start
+        (directive_name))
+      (raw_element
+        (raw_start_tag
+          (raw_tag_name))
+        (raw_text)
+        (raw_void_element
+          (void_tag_name))
+        (raw_text)
+        (raw_end_tag
+          (raw_tag_name)))
+      (raw_end
+        (directive_name)))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================
+A void closing tag closes nothing
+=====================================
+
+<puzzle-view>
+<p>a<br>b</br></p>
+<input type="text"></input>
+</img>
+{#raw}<p>a<br>b</br></p>{/raw}
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (element
+      (start_tag
+        (tag_name))
+      (text)
+      (void_element
+        (void_tag_name))
+      (text)
+      (void_end_tag
+        (void_tag_name))
+      (end_tag
+        (tag_name)))
+    (text)
+    (void_element
+      (void_tag_name)
+      (attribute
+        (normal_attribute
+          (attribute_name)
+          (quoted_attribute_value
+            (attribute_text)))))
+    (void_end_tag
+      (void_tag_name))
+    (text)
+    (void_end_tag
+      (void_tag_name))
+    (text)
+    (raw_block
+      (raw_start
+        (directive_name))
+      (raw_element
+        (raw_start_tag
+          (raw_tag_name))
+        (raw_text)
+        (raw_void_element
+          (void_tag_name))
+        (raw_text)
+        (void_end_tag
+          (void_tag_name))
+        (raw_end_tag
+          (raw_tag_name)))
+      (raw_end
+        (directive_name)))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+===============================================
+Only the thirteen HTML void elements are void
+===============================================
+
+<puzzle-view><object><param name="a"></param></object><Input label="x">hint</Input><BR></BR></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        (tag_name))
+      (element
+        (start_tag
+          (tag_name)
+          (attribute
+            (normal_attribute
+              (attribute_name)
+              (quoted_attribute_value
+                (attribute_text)))))
+        (end_tag
+          (tag_name)))
+      (end_tag
+        (tag_name)))
+    (element
+      (start_tag
+        (tag_name)
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (quoted_attribute_value
+              (attribute_text)))))
+      (text)
+      (end_tag
+        (tag_name)))
+    (element
+      (start_tag
+        (tag_name))
+      (end_tag
+        (tag_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+=====================================================
+A second {:else} is its own node inside the first
+=====================================================
+
+<puzzle-view>
+{#if a}x{:else}y{:else}z{/if}
+{#unless a}x{:else}y{:else}z{/unless}
+{#case k}{:when 1}a{:else}b{:else}c{/case}
+{#for i in items}x{:else}y{:else}z{/for}
+<p>after</p>
+</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (text)
+    (if_statement
+      (if_start
+        (directive_name)
+        (identifier))
+      (text)
+      (else_block
+        (else_start
+          (directive_name))
+        (text)
+        (duplicate_else)
+        (text))
+      (if_end
+        (directive_name)))
+    (text)
+    (unless_statement
+      (unless_start
+        (directive_name)
+        (identifier))
+      (text)
+      (else_block
+        (else_start
+          (directive_name))
+        (text)
+        (duplicate_else)
+        (text))
+      (unless_end
+        (directive_name)))
+    (text)
+    (case_statement
+      (case_start
+        (directive_name)
+        (identifier))
+      (when_block
+        (when_start
+          (directive_name)
+          (number))
+        (text))
+      (case_else_block
+        (else_start
+          (directive_name))
+        (text)
+        (duplicate_else)
+        (text))
+      (case_end
+        (directive_name)))
+    (text)
+    (for_statement
+      (for_start
+        (directive_name)
+        (loop_binding)
+        (identifier))
+      (text)
+      (for_else_block
+        (else_start
+          (directive_name))
+        (text)
+        (duplicate_else)
+        (text))
+      (for_end
+        (directive_name)))
+    (text)
+    (element
+      (start_tag
+        (tag_name))
+      (text)
+      (end_tag
+        (tag_name)))
+    (text)
+    (view_end_tag
+      (section_tag_name)))
+  (text))

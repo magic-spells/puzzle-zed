@@ -55,7 +55,15 @@
   (#match? @type "^[A-Z]")
   (#not-match? @type "^(Children|Slot|Portal|Snippet)$"))
 
-(void_tag_name) @tag
+; HTML void elements need no slash. A void element has no closing tag, so a
+; </br> or </input> is a compile error, flagged where it stands; the parser
+; keeps it from closing anything.
+(void_element
+  name: (void_tag_name) @tag)
+(raw_void_element
+  name: (void_tag_name) @tag)
+(void_end_tag
+  name: (void_tag_name) @tag @error)
 (attribute_name) @attribute
 (event_name) @function
 (directive_name) @keyword
@@ -98,6 +106,11 @@
 ; header, arrow parameters, object shorthand and @event handlers alike. A
 ; property named `this` (`x.this`) is a property_identifier, not this node.
 (this) @error
+
+; {:else} must be the last clause: a second one in the same block is a compile
+; error. Its keyword is an anonymous "else" that no other pattern captures.
+(duplicate_else
+  "else" @error)
 
 ((identifier) @variable.builtin
   (#any-of? @variable.builtin "Math" "Object" "Array"))
@@ -419,6 +432,7 @@
   (raw_end_tag ">" @punctuation.bracket)
   (raw_self_closing_element "<" @punctuation.bracket)
   (raw_void_element ["<" ">" "/"] @punctuation.bracket)
+  (void_end_tag ">" @punctuation.bracket)
 ]
 
 [
@@ -445,6 +459,7 @@
   (raw_end "/" @punctuation.special)
   (else_if_start ":" @punctuation.special)
   (else_start ":" @punctuation.special)
+  (duplicate_else ":" @punctuation.special)
   (when_start ":" @punctuation.special)
   (event_attribute ":" @punctuation.special)
 ]

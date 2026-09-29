@@ -27,7 +27,18 @@ The grammar tracks the **Puzzle 0.8.0** template grammar.
   with no library builtin and no `raw`/`newline_to_br` rule, even when a name
   matches a library function
 - Puzzle conditionals, case blocks, collection/range loops, and SVG directives
-- `{#raw}` blocks: structural HTML inside, inert braces, no markers
+- `{#raw}` blocks: structural HTML inside, inert braces, no markers. The body
+  is one span, so a `<puzzle-view>…</puzzle-view>` or `<script>…</script>`
+  sample inside it ends neither the block nor the section
+- HTML void elements (`area base br col embed hr img input link meta source
+  track wbr`) with or without the slash: `<br>`, `<br/>` and
+  `<input value={ x } readonly>` are whole elements and never nest, so in
+  `<p>a<br>b</p>` the `</p>` closes the `<p>`. A void closing tag (`</br>`,
+  `</input>`) is a compile error: it parses as a `void_end_tag` that closes
+  nothing and is flagged invalid where it stands, in a raw body too
+- A second `{:else}` in one `{#if}`, `{#unless}`, `{#case}` or `{#for}` is a
+  compile error: it parses as a `duplicate_else` node and is flagged invalid,
+  and the rest of the block still parses
 - Escaped braces: `\{` and `\}` are literal text, never an interpolation, and
   are scoped as escapes — in template text and in quoted attribute values, but
   deliberately not inside `{#raw}`, where the bytes stay verbatim
@@ -117,7 +128,8 @@ and editing behavior. Compiler-backed diagnostics, completion, navigation, and
 formatting would require a Puzzle language server. The Puzzle compiler remains
 the source of truth for semantic validation.
 
-The grammar parses a template expression far enough to flag the three
+Beyond the markup rules above (void closing tags, a second `{:else}`), the
+grammar parses a template expression far enough to flag the three
 things an editor can see on its own — a `|`, `this`, and a misplaced `raw()`
 or `newline_to_br()` — and deliberately no further. Which methods a value
 has (the method table), the excluded operators (bitwise operators, `**` and

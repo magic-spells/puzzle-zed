@@ -309,6 +309,7 @@ module.exports = grammar({
       $.raw_block,
       $.interpolation,
       $.void_element,
+      $.void_end_tag,
       $.self_closing_element,
       $.element,
       $.escaped_brace,
@@ -417,6 +418,9 @@ module.exports = grammar({
       '/>',
     ),
 
+    // An HTML void element's start tag is the whole element, with or without
+    // the slash (<br>, <br/>, <input …>), so it never nests and what follows
+    // it belongs to the parent.
     void_element: $ => prec(5, seq(
       '<',
       field('name', $.void_tag_name),
@@ -424,6 +428,17 @@ module.exports = grammar({
       optional('/'),
       '>',
     )),
+
+    // A void element has no closing tag, so </br> or </input> is a compile
+    // error. It parses as a node of its own — a string literal outranks the
+    // tag_name regex, so after '</' the name 'br' is a void_tag_name — and
+    // closes nothing: in <p>a<br>b</br></p> the </p> still closes the <p>,
+    // and the queries flag the </br> where it stands.
+    void_end_tag: $ => seq(
+      '</',
+      field('name', $.void_tag_name),
+      '>',
+    ),
 
     tag_name: _ => /[A-Za-z][A-Za-z0-9_.:-]*/,
 
@@ -438,7 +453,6 @@ module.exports = grammar({
       'input',
       'link',
       'meta',
-      'param',
       'source',
       'track',
       'wbr',
@@ -590,7 +604,18 @@ module.exports = grammar({
 
     else_block: $ => seq(
       $.else_start,
-      repeat($._node),
+      repeat(choice($._node, $.duplicate_else)),
+    ),
+
+    // {:else} must be the last clause, so a second one in the same {#if},
+    // {#unless}, {#case} or {#for} is a compile error. It parses as its own
+    // node inside the first {:else}'s body, so the queries flag it where it
+    // stands and the rest of the block still parses.
+    duplicate_else: _ => seq(
+      '{',
+      ':',
+      token.immediate('else'),
+      '}',
     ),
 
     else_start: $ => seq(
@@ -660,7 +685,7 @@ module.exports = grammar({
 
     case_else_block: $ => seq(
       $.else_start,
-      repeat($._node),
+      repeat(choice($._node, $.duplicate_else)),
     ),
 
     case_end: $ => seq(
@@ -709,7 +734,7 @@ module.exports = grammar({
 
     for_else_block: $ => seq(
       $.else_start,
-      repeat($._node),
+      repeat(choice($._node, $.duplicate_else)),
     ),
 
     for_end: $ => seq(
@@ -764,6 +789,7 @@ module.exports = grammar({
     _raw_node: $ => choice(
       $.comment,
       $.raw_void_element,
+      $.void_end_tag,
       $.raw_self_closing_element,
       $.raw_element,
       $.raw_text,
@@ -848,7 +874,7 @@ module.exports = grammar({
 
     attribute_else_block: $ => seq(
       $.else_start,
-      repeat($._attribute_node),
+      repeat(choice($._attribute_node, $.duplicate_else)),
     ),
 
     attribute_unless_statement: $ => seq(

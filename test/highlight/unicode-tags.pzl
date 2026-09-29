@@ -1,0 +1,52 @@
+<puzzle-view>
+  <!-- Every tag name starts at column 7 (column 8 after '</'), where byte
+       and character columns agree, so the carets hold for non-ASCII names. -->
+      <Übersicht/>
+  <!-- ^ type -->
+      <概要/>
+  <!-- ^ type -->
+      <Frame.Übersicht/>
+  <!-- ^ type -->
+      <_foo/>
+  <!-- ^ type -->
+      <ärmel/>
+  <!-- ^ type -->
+      <Übersicht title={ x }>
+  <!-- ^ type -->
+      </Übersicht>
+  <!--  ^ type -->
+      <概要>
+  <!-- ^ type -->
+      </概要>
+  <!--  ^ type -->
+      <straße-karte>
+  <!-- ^ tag -->
+  <!-- ^ !type -->
+      </straße-karte>
+  <!--  ^ tag -->
+  <!--  ^ !type -->
+      <div>d</div>
+  <!-- ^ tag -->
+  <!-- ^ !type -->
+      <my-élément>
+  <!-- ^ tag -->
+  <!-- ^ !type -->
+      </my-élément>
+  <!--  ^ tag -->
+  <!--  ^ !type -->
+      <Frame-x/>
+  <!-- ^ type -->
+      <Frame:Wrapper/>
+  <!-- ^ type -->
+      <Slot.Foo/>
+  <!-- ^ type -->
+  <!-- ^ !keyword -->
+      <Children/>
+  <!-- ^ keyword -->
+  <!-- ^ !type -->
+      <Slot name="row"/>
+  <!-- ^ keyword -->
+  {#raw}<Übersicht/>{/raw}
+  <!--   ^ tag -->
+  <!--   ^ !type -->
+</puzzle-view>

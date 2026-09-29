@@ -440,7 +440,13 @@ module.exports = grammar({
       '>',
     ),
 
-    tag_name: _ => /[A-Za-z][A-Za-z0-9_.:-]*/,
+    // A tag name follows the JavaScript identifier rules past ASCII (D167): it
+    // starts with an ASCII letter, '_' or a non-ASCII ID_Start letter and
+    // continues with ID_Continue characters, '-', ':' and the '.' family
+    // separator. '$' is never part of it, so `<$50` stays text. Whether the tag
+    // is a component or an element is the queries' call: anything but an ASCII
+    // lowercase first letter names a component (<Übersicht>, <概要>, <_x>).
+    tag_name: _ => /[_\p{ID_Start}][A-Za-z0-9_.:\-\p{ID_Continue}\u200C\u200D]*/,
 
     void_tag_name: _ => choice(
       'area',
@@ -831,7 +837,7 @@ module.exports = grammar({
 
     // A separate tag-name token is what keeps the marker highlight queries from
     // firing on <Slot/> or <Portal> inside a raw body.
-    raw_tag_name: _ => /[A-Za-z][A-Za-z0-9_.:-]*/,
+    raw_tag_name: _ => /\p{ID_Start}[A-Za-z0-9_.:\-\p{ID_Continue}\u200C\u200D]*/,
 
     // Attribute values never enter interpolation here, and 'ref', 'island',
     // 'key' and 'flip' are ordinary attribute names. The name charset is wide

@@ -13,11 +13,11 @@
 ((element
   (start_tag
     (tag_name) @name)) @item
-  (#match? @name "^[A-Z]"))
+  (#match? @name "^[^a-z]"))
 
 ((self_closing_element
   (tag_name) @name) @item
-  (#match? @name "^[A-Z]"))
+  (#match? @name "^[^a-z]"))
 
 (if_statement
   (if_start) @name) @item

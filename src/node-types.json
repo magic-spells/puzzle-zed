@@ -2538,11 +2538,6 @@
     }
   },
   {
-    "type": "raw_tag_name",
-    "named": true,
-    "fields": {}
-  },
-  {
     "type": "raw_void_element",
     "named": true,
     "fields": {
@@ -2944,11 +2939,6 @@
         }
       ]
     }
-  },
-  {
-    "type": "tag_name",
-    "named": true,
-    "fields": {}
   },
   {
     "type": "template_string",
@@ -3932,6 +3922,10 @@
     "named": true
   },
   {
+    "type": "raw_tag_name",
+    "named": true
+  },
+  {
     "type": "raw_text",
     "named": true
   },
@@ -3965,6 +3959,10 @@
   },
   {
     "type": "svg_path",
+    "named": true
+  },
+  {
+    "type": "tag_name",
     "named": true
   },
   {

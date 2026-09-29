@@ -60,7 +60,10 @@ The grammar tracks the **Puzzle 0.8.0** template grammar.
   `<Slot name="row" user={ user }>`
 - Distinct component tags — including dotted component-family member paths
   such as `<Frame.Wrapper>` (D167) — event/action names, and `@` sigils, plus the
-  fourteen legal event modifiers scoped apart from unknown ones
+  fourteen legal event modifiers scoped apart from unknown ones. A tag is a
+  component when its first character is anything but an ASCII lowercase
+  letter, so `<Übersicht>`, `<概要>` and `<_x>` are components and
+  `<straße-karte>` is an element
 - Bracket matching, auto-indentation, and a component-aware outline
 - Tailwind CSS language-server opt-in for `.pzl` files
 

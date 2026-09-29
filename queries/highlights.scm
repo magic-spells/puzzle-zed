@@ -47,12 +47,13 @@
   (#match? @tag "^[a-z]")
   (#not-match? @tag "^(children|slot|portal)$"))
 
-; A capitalized tag name is a component. The name may be a dotted member path
-; — <Frame.Wrapper>, a component-family member (D167) — which `tag_name`
+; A tag whose first character is anything but an ASCII lowercase letter is a
+; component (D167): <Card>, <Übersicht>, <概要>, <_x>. The name may be a dotted
+; member path — <Frame.Wrapper>, a component-family member — which `tag_name`
 ; already accepts; the marker predicates above are anchored, so a dotted root
 ; like <Slot.Custom> lands here rather than reading as a marker.
 ((tag_name) @tag @type
-  (#match? @type "^[A-Z]")
+  (#match? @type "^[^a-z]")
   (#not-match? @type "^(Children|Slot|Portal|Snippet)$"))
 
 ; HTML void elements need no slash. A void element has no closing tag, so a

@@ -577,7 +577,7 @@
     },
     "tag_name": {
       "type": "PATTERN",
-      "value": "[A-Za-z][A-Za-z0-9_.:-]*"
+      "value": "[_\\p{ID_Start}][A-Za-z0-9_.:\\-\\p{ID_Continue}\\u200C\\u200D]*"
     },
     "void_tag_name": {
       "type": "CHOICE",
@@ -2060,7 +2060,7 @@
     },
     "raw_tag_name": {
       "type": "PATTERN",
-      "value": "[A-Za-z][A-Za-z0-9_.:-]*"
+      "value": "\\p{ID_Start}[A-Za-z0-9_.:\\-\\p{ID_Continue}\\u200C\\u200D]*"
     },
     "raw_attribute": {
       "type": "SEQ",

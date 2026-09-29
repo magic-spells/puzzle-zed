@@ -8,4 +8,4 @@ repository = "https://github.com/magic-spells/puzzle-zed"
 
 [grammars.puzzle]
 repository = "file:///Users/coryschulz/Code/@magic-spells/puzzle/editors/puzzle-zed"
-commit = "bf806be212666e5765b3b4e0f2517aa070c013af"
+commit = "dd293f0a9b3d2ab143a0570febc02717d7919df4"

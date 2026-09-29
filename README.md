@@ -10,32 +10,30 @@ The grammar tracks the **Puzzle 0.8.0** template grammar.
 - HTML-like highlighting in `<puzzle-view>` and `<puzzle-skeleton>`
 - JavaScript in `<script>` and TypeScript in `<script lang="ts">`
 - CSS in `<style>` and `<style scoped>`
-- TypeScript-aware highlighting inside Puzzle expressions
+- Template expressions (D176) parsed as JavaScript-shaped expressions in every
+  position — interpolations, attribute values, component props, marker
+  arguments, block headers, `{:when}` values, the `{#for}` header and
+  `@event` handlers: calls, method calls, arrow-function arguments, template
+  literals, object and array literals, `??` and `?.`
+- The function library scoped as builtins when called bare (`currency(price)`,
+  `t('cart.count', { count: n })`, `date(d, 'short')`, `timeago(at)`, …),
+  along with the JavaScript globals (`Math.round`, `Number`, `parseInt`, …);
+  an app's own registered functions scope as ordinary functions
 - Puzzle conditionals, case blocks, collection/range loops, and SVG directives
 - `{#raw}` blocks: structural HTML inside, inert braces, no markers
 - Escaped braces: `\{` and `\}` are literal text, never an interpolation, and
   are scoped as escapes — in template text and in quoted attribute values, but
   deliberately not inside `{#raw}`, where the bytes stay verbatim
-- Formatter chains (`{ price | currency('$') }`), told apart from `||` and from
-  a `|` inside a string or parentheses. A formatter name is an identifier,
-  optionally kebab-case (`my-format`); anything else after a pipe
-  (`{ w / 2 | 0 }`, `{ mask | bit-1 }`, `{ p | fmt.eur }`) is a compile error
-  and is flagged invalid
-- Formatter chains in every value position (D173) — brace-only attribute
-  values (`title={ price | currency }`), component props and marker
-  arguments. Block headers are conditions, not values: a pipe in an `{#if}`,
-  `{:else if}`, `{#unless}` or `{#case}` header (an inline one inside a quoted
-  attribute value included), a `{#for}` header or a `{:when}` value is a
-  compile error and is flagged invalid — compute the value in `data()` and
-  test that field. `@event` handler bodies are JavaScript, but a template has
-  no bitwise OR (D176), so a pipe in a handler (`@click={ a | b }`) is flagged
-  the same way. `||` stays logical OR everywhere. Object literals in formatter
-  arguments (`{ 'cart.count' | t({ count: n }) }`) balance as JavaScript
-- The markup formatters `raw` and `newline_to_br` (D174) scoped as formatters
-  only as the last link of a text interpolation, with no arguments (`raw()`
-  counts as none); after
-  another formatter, with arguments, in an attribute value, prop or marker
-  argument, or directly inside a text-only element (`<textarea>`, `<title>`, …)
+- A single `|` anywhere in a template expression — text, attribute value,
+  prop, marker argument, block header or handler — is flagged invalid: there
+  is no pipe and no bitwise OR. `||` is logical OR, and a `|` inside a string
+  or template literal is text. `<script>` and `<style>` are untouched
+- `this` is flagged invalid in every template expression, handlers included
+  (`x.this` is an ordinary property)
+- `raw()` and `newline_to_br()` scoped as builtins only as the whole of a text
+  interpolation (parentheses aside); in an attribute value, prop, marker
+  argument, `key=`/`flip=`, a block header, nested inside another call or
+  operator, or directly inside a text-only element (`<textarea>`, `<title>`, …)
   or `<svg>`/`<math>`, they are flagged invalid
 - Composition markers (`<Children>`, `<Slot>`, `<Portal>`, `<Snippet>`) scoped
   apart from user components, with the lowercase spellings flagged
@@ -74,10 +72,15 @@ npm install
 npm run generate
 npm test
 npm run test:examples
+npm run test:conformance
 ```
 
 `npm test` runs focused Tree-sitter corpus fixtures and the highlight
 assertions in `test/highlight` (checked against `queries/highlights.scm`).
+`npm run test:conformance` places every valid case of the shared expression
+table (`packages/puzzle-lang/conformance/expressions-parse.json` in the
+monorepo, or `PUZZLE_CONFORMANCE`) in each expression position and fails on a
+syntax error or an `@error` capture.
 `npm run test:examples` parses every `.pzl` file under the Puzzle monorepo's
 `packages/puzzle/examples` (found at `../../puzzle`, with the older sibling
 layouts as fallbacks) and fails if any syntax error is produced. If Puzzle lives
@@ -107,19 +110,20 @@ and editing behavior. Compiler-backed diagnostics, completion, navigation, and
 formatting would require a Puzzle language server. The Puzzle compiler remains
 the source of truth for semantic validation.
 
-Template values are the D176 data language — paths, literals and operators,
-with `.size` for a count — and are highlighted with TypeScript's expression
-grammar. The grammar does not check what a value may contain: `.length`, a
-call on data (`draft.trim()`, `Math.round(x)`), an arrow function, a template
-literal, a regex literal or a nested `|` (`{ (a | b) }`) all parse and
-highlight as TypeScript, and the compiler reports them. `this.` chains and
-`@event` handler bodies are JavaScript by design.
+The grammar parses a template expression far enough to flag the three
+things an editor can see on its own — a `|`, `this`, and a misplaced `raw()`
+or `newline_to_br()` — and deliberately no further. Which methods a value
+has (the method table), the excluded operators (bitwise operators, `**` and
+the rest still parse and highlight as operators), which names resolve, and
+function arity are the compiler's to report. A regular-expression literal is
+not part of the language and does not parse.
 
 Known limitations:
 
-- A markup formatter is flagged inside a text-only or foreign element only
-  when its interpolation is a direct child of that element; one nested deeper
-  (under an `{#if}`, say) is left to the compiler.
+- `raw()`/`newline_to_br()` is flagged inside a text-only or foreign element
+  only when its interpolation is a direct child of that element; one nested
+  deeper (under an `{#if}`, say) is left to the compiler, as is one wrapped in
+  parentheses inside another expression (`a + (raw(x))`).
 - Inside the body of an inline block in a quoted attribute value
   (`class="{#if on}…{/if}"`), text may not contain either quote character: the
   body does not know which quote encloses the value, so an apostrophe there

@@ -1,0 +1,49 @@
+<puzzle-view>
+  <p>{ price | currency }</p>
+  <!--       ^ error -->
+  <p>{ a || b }</p>
+  <!--   ^ operator -->
+  <p>{ 'a|b' + `c|d${ e | f }` }</p>
+  <!-- ^ string -->
+  <!--         ^ string -->
+  <!--                  ^ error -->
+  <p title={ a | b }>k</p>
+  <!--         ^ error -->
+  <p class="x { a | b }">k</p>
+  <!--            ^ error -->
+  <Card user={ user | pick }></Card>
+  <!--              ^ error -->
+  <Children row={ row | f }/>
+  <!--                ^ error -->
+  <b class="{#if a | b}on{/if}">k</b>
+  <!--             ^ error -->
+  {#if a | b}k{:else if c | d}l{/if}
+  <!--   ^ error -->
+  <!--                    ^ error -->
+  {#unless a | b}k{/unless}
+  <!--       ^ error -->
+  {#case a | b}{:when 'x' | y}k{/case}
+  <!--     ^ error -->
+  <!--                    ^ error -->
+  {#for t in todos | f}<i></i>{/for}
+  <!--             ^ error -->
+  {#for 0...n | f, i}<i></i>{/for}
+  <!--        ^ error -->
+  <button @click={ save(a | b) }>k</button>
+  <!--                    ^ error -->
+  <p>{ f(a) | g(b, c) | h }</p>
+  <!--      ^ error -->
+  <!--                ^ error -->
+  <p>{ (a | b) && c }</p>
+  <!--    ^ error -->
+  <!--         ^ operator -->
+  <p>{ a &&
+      b | c }</p>
+  <!--  ^ error -->
+</puzzle-view>
+<script>
+const mask = flags | 1;
+</script>
+<style>
+.a { font-family: a, b; }
+</style>

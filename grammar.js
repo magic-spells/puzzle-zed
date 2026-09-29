@@ -7,6 +7,36 @@
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
+// Binding power of the expression operators, JavaScript's order. The
+// expression language (D176) has only some of these operators; the rest —
+// the bitwise ones, `**` — still parse, so a stray one reads as one operator
+// the compiler reports instead of an ERROR node that derails the tag around
+// it. `|` is among them because a single '|' is the one spelling the
+// highlight queries flag everywhere.
+const PREC = {
+  ternary: 1,
+  coalesce: 2,
+  or: 3,
+  and: 4,
+  bitor: 5,
+  bitxor: 6,
+  bitand: 7,
+  equality: 8,
+  relational: 9,
+  shift: 10,
+  additive: 11,
+  multiplicative: 12,
+  exponent: 13,
+  unary: 14,
+  call: 15,
+  member: 16,
+};
+
+const commaSep1 = rule => seq(rule, repeat(seq(',', rule)));
+// A list that may end with one trailing comma, as JavaScript allows in
+// arrays, objects, arguments and arrow parameters.
+const trailingCommaSep = rule => optional(seq(commaSep1(rule), optional(',')));
+
 module.exports = grammar({
   name: 'puzzle',
 
@@ -21,21 +51,20 @@ module.exports = grammar({
     [$.attribute_when_block],
     [$.attribute_case_else_block],
     [$.attribute_for_else_block],
+    // `(x)` is a parenthesized expression until a `=>` makes it an arrow
+    // function's parameter list.
+    [$._primary_expression, $._arrow_parameter],
   ],
 
   externals: $ => [
     $.comment,
     $.script_content,
     $.style_content,
-    $.expression_content,
     $.inline_comment,
     $.block_comment,
-    // The pipe-free {#svg …} path, aliased to expression_content. It differs
-    // from a value expression only in that a top-level '|' does not end it.
+    // The {#svg …} path: one opaque token, balanced like an expression, that
+    // ends at the closing '}'.
     $.directive_expression,
-    // One formatter argument, aliased to expression_content so the TypeScript
-    // injection covers it. Stops at a top-level ',' or ')'.
-    $.formatter_argument,
     // Literal text inside {#raw} … {/raw} (D150).
     $.raw_text,
     // A brace-delimited attribute value inside a raw body. Its bytes are
@@ -43,10 +72,18 @@ module.exports = grammar({
     // compiler uses, so a '}' inside a string, regex or comment does not close
     // it.
     $.raw_brace_value,
+    // The text of a template literal between its backticks and `${ }`
+    // substitutions. External because whitespace is text there, not extras.
+    $._template_chars,
+    // `?.`, except before a digit: `a?.5:1` is a conditional, as in
+    // JavaScript. Tree-sitter's lexer has no lookahead, so the scanner owns it.
+    $.optional_chain,
   ],
 
   extras: $ => [
-    /\s+/,
+    // JavaScript's whitespace, which is wider than the ASCII '\s': a no-break
+    // space, U+3000 or a BOM between two operands is still whitespace.
+    /[\s\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000\uFEFF]+/,
   ],
 
   supertypes: $ => [
@@ -241,15 +278,13 @@ module.exports = grammar({
       )),
     ),
 
-    // An @event value is a handler body, not a value position: it stays
-    // JavaScript, but it takes no formatter chain and there is no bitwise OR in
-    // a template (D176), so any single '|' in it is a compile error. A
-    // top-level one splits off into the same invalid chain the block headers
-    // use; '||' stays logical OR.
+    // An @event value is a call to one of the view's handlers — the whole
+    // value, or each branch of a top-level conditional (D176 rule 7) — whose
+    // arguments are ordinary template expressions with `event` in scope. It
+    // parses as the same expression every other position does.
     event_handler: $ => seq(
       '{',
-      field('value', $.expression_content),
-      repeat($._invalid_chain),
+      field('value', $._expression),
       '}',
     ),
 
@@ -317,73 +352,14 @@ module.exports = grammar({
       /\\/,
     )),
 
-    // { expr }, { expr | formatter }, { expr | formatter(arg, arg) | other }.
-    // The scanner ends expression_content at the first top-level SINGLE '|', so
-    // a logical-OR ('||') and a '|' inside a string, a /a|b/ regex, or any
-    // (), [] or {} stay part of the expression. The same chain is legal in every
-    // value position (D173 V1): text, quoted and brace-only attribute values,
-    // component props and marker arguments — all of which parse as this node.
-    // Block headers are conditions, not value positions, and take no chain.
-    //
-    // The expression itself is the D176 data language — paths, literals and
-    // operators, with `.size` for a count — but it stays one opaque token
-    // injected as TypeScript. What it may contain (no calls on data, no
-    // `.length`, no arrows, template literals or regexes) is the compiler's
-    // to enforce, not this grammar's.
+    // { expr } — in template text, in a quoted or brace-only attribute value,
+    // a component prop and a marker argument. The value is one template
+    // expression (D176): JavaScript-shaped, parsed by the rules at the end of
+    // this grammar.
     interpolation: $ => seq(
       '{',
-      field('value', $.expression_content),
-      repeat($.formatter),
+      field('value', $._expression),
       '}',
-    ),
-
-    formatter: $ => seq(
-      '|',
-      field('name', $.formatter_name),
-      optional($._formatter_call),
-    ),
-
-    // Deliberately looser than the compiler's isFormatterName, which is an
-    // identifier, optionally kebab-case, where every '-' starts a word with a
-    // letter (`my-format`). A malformed name after a pipe — `| 0`, `| bit-1`,
-    // `| fmt.eur`, `| fmt-`, `| f--g` — is a compile error, and parsing it
-    // whole as one name (rather than as an ERROR node the queries cannot see)
-    // lets the highlight queries flag it with the compiler's exact rule.
-    formatter_name: _ => /[A-Za-z0-9_$.\-]+/,
-
-    // A formatter chain where the compiler rejects one (D173 V1): every block
-    // header — the {#if}, {:else if}, {#unless} and {#case} conditions (inline
-    // ones in a quoted attribute value included), a {#for} header (collection
-    // or either range bound) and a {:when} value — and an @event handler body
-    // (D176). Formatters are for values, not logic: compute the value in
-    // data() and test that field. It parses (no ERROR node) so highlighting
-    // can flag the name as invalid. After a
-    // rejected pipe the rest of the header — a `, counter` or another {:when}
-    // value — still parses, so the one mistake is the one flag.
-    _invalid_chain: $ => choice(
-      $.invalid_formatter,
-      seq(',', $.expression_content),
-    ),
-
-    invalid_formatter: $ => seq(
-      '|',
-      field('name', alias($.formatter_name, $.invalid_formatter_name)),
-      optional($._formatter_call),
-    ),
-
-    // Empty parentheses are a call with no arguments — `raw()` is `raw` — so
-    // they produce no formatter_arguments node. That keeps "has arguments"
-    // one node test for the markup-formatter queries.
-    _formatter_call: $ => choice(
-      seq('(', ')'),
-      $.formatter_arguments,
-    ),
-
-    formatter_arguments: $ => seq(
-      '(',
-      alias($.formatter_argument, $.expression_content),
-      repeat(seq(',', alias($.formatter_argument, $.expression_content))),
-      ')',
     ),
 
     if_statement: $ => seq(
@@ -398,8 +374,7 @@ module.exports = grammar({
       '{',
       '#',
       alias(token.immediate('if'), $.directive_name),
-      field('condition', $.expression_content),
-      repeat($._invalid_chain),
+      field('condition', $._expression),
       '}',
     ),
 
@@ -413,8 +388,7 @@ module.exports = grammar({
       ':',
       alias(token.immediate('else'), $.directive_name),
       alias('if', $.directive_name),
-      field('condition', $.expression_content),
-      repeat($._invalid_chain),
+      field('condition', $._expression),
       '}',
     ),
 
@@ -448,8 +422,7 @@ module.exports = grammar({
       '{',
       '#',
       alias(token.immediate('unless'), $.directive_name),
-      field('condition', $.expression_content),
-      repeat($._invalid_chain),
+      field('condition', $._expression),
       '}',
     ),
 
@@ -471,8 +444,7 @@ module.exports = grammar({
       '{',
       '#',
       alias(token.immediate('case'), $.directive_name),
-      field('value', $.expression_content),
-      repeat($._invalid_chain),
+      field('value', $._expression),
       '}',
     ),
 
@@ -485,8 +457,8 @@ module.exports = grammar({
       '{',
       ':',
       alias(token.immediate('when'), $.directive_name),
-      field('values', $.expression_content),
-      repeat($._invalid_chain),
+      field('value', $._expression),
+      repeat(seq(',', field('value', $._expression))),
       '}',
     ),
 
@@ -513,9 +485,30 @@ module.exports = grammar({
       '{',
       '#',
       alias(token.immediate('for'), $.directive_name),
-      field('clause', $.expression_content),
-      repeat($._invalid_chain),
+      $._for_clause,
       '}',
+    ),
+
+    // `item in items` or the range `from...to`, each with an optional
+    // `, counter`. The item and counter are bindings, not expressions.
+    //
+    // `1...5` lexes as the number `1.` (JavaScript's trailing-dot form) and
+    // then `..`, because the lexer has no lookahead to stop the number before
+    // a dot that belongs to the range. So `..` after a number is the range
+    // operator too; `a..b` anywhere else is not a range the compiler accepts.
+    _for_clause: $ => choice(
+      seq(
+        field('item', alias($.identifier, $.loop_binding)),
+        'in',
+        field('collection', $._expression),
+        optional(seq(',', field('counter', alias($.identifier, $.loop_binding)))),
+      ),
+      seq(
+        field('from', $._expression),
+        choice('...', '..'),
+        field('to', $._expression),
+        optional(seq(',', field('counter', alias($.identifier, $.loop_binding)))),
+      ),
     ),
 
     for_else_block: $ => seq(
@@ -534,13 +527,13 @@ module.exports = grammar({
       '{',
       '#',
       alias(token.immediate('svg'), $.directive_name),
-      field('path', alias($.directive_expression, $.expression_content)),
+      field('path', alias($.directive_expression, $.svg_path)),
       '}',
     ),
 
     // ----- {#raw} … {/raw} (D150) -------------------------------------------
     // A raw block turns the template lexer off for its body. Braces are inert
-    // there — no interpolation, no block tags, no formatter pipes, no @event
+    // there — no interpolation, no block tags, no expressions, no @event
     // binding, and '\{' is not an escape — but HTML stays structural, so <b>
     // is a real element and <Slot/>, <Portal> and <Card/> are plain elements,
     // NOT composition markers. Raw blocks do not nest: the first valid closer
@@ -721,6 +714,214 @@ module.exports = grammar({
     text: _ => token(choice(
       /([^<>{\\]|\\[^<>{}\\])+/,
       /\\/,
+    )),
+
+    // ----- Template expressions (D176) --------------------------------------
+    // Every expression position — interpolations, attribute values, props,
+    // marker arguments, block headers, {:when} values, the {#for} header and
+    // @event handlers — parses as one JavaScript-shaped expression. The tree
+    // is what lets the highlight queries flag the three things an editor can
+    // see without the compiler: a single `|` (there is no pipe and no bitwise
+    // OR), `this`, and `raw()`/`newline_to_br()` anywhere but the whole of a
+    // text interpolation. The grammar is deliberately a little wider than the
+    // language — bitwise operators and `**` parse — and everything the
+    // compiler decides (the method table, the excluded operators, which names
+    // resolve) is left to the compiler.
+    _expression: $ => choice(
+      $._primary_expression,
+      $.unary_expression,
+      $.binary_expression,
+      $.ternary_expression,
+    ),
+
+    _primary_expression: $ => choice(
+      $.identifier,
+      $.this,
+      $.number,
+      $.string,
+      $.template_string,
+      $.array,
+      $.object,
+      $.parenthesized_expression,
+      $.member_expression,
+      $.subscript_expression,
+      $.call_expression,
+    ),
+
+    // JavaScript's ID_Start / ID_Continue, plus '$', '_' and the two joiners.
+    // `true`, `null`, `undefined`, `NaN` and friends are identifiers here; the
+    // highlight queries tell them apart by name.
+    identifier: _ => /[\p{ID_Start}_$][\p{ID_Continue}$\u200C\u200D]*/,
+
+    // Not an identifier in a template (D176 rule 7). It parses — in every
+    // position, arrow parameters and object shorthand included — so the
+    // highlight queries can flag it. `x.this` is a property, not this node.
+    this: _ => 'this',
+
+    // Decimal only, with JavaScript's leading- and trailing-dot forms.
+    number: _ => token(choice(
+      /\d+(\.\d*)?([eE][+-]?\d+)?/,
+      /\.\d+([eE][+-]?\d+)?/,
+    )),
+
+    // One token each; a backslash-newline is a line continuation.
+    string: _ => token(choice(
+      /'([^'\\\r\n]|\\(.|\r?\n))*'/,
+      /"([^"\\\r\n]|\\(.|\r?\n))*"/,
+    )),
+
+    template_string: $ => seq(
+      '`',
+      repeat(choice($._template_chars, $.template_substitution)),
+      '`',
+    ),
+
+    template_substitution: $ => seq(
+      '${',
+      $._expression,
+      '}',
+    ),
+
+    array: $ => seq(
+      '[',
+      trailingCommaSep($._expression),
+      ']',
+    ),
+
+    object: $ => seq(
+      '{',
+      trailingCommaSep(choice(
+        $.pair,
+        alias($.identifier, $.shorthand_property_identifier),
+        $.this,
+      )),
+      '}',
+    ),
+
+    pair: $ => seq(
+      field('key', choice(alias($.identifier, $.property_identifier), $.string)),
+      ':',
+      field('value', $._expression),
+    ),
+
+    parenthesized_expression: $ => seq(
+      '(',
+      $._expression,
+      ')',
+    ),
+
+    member_expression: $ => prec(PREC.member, seq(
+      field('object', $._primary_expression),
+      choice('.', $.optional_chain),
+      field('property', alias($.identifier, $.property_identifier)),
+    )),
+
+    subscript_expression: $ => prec(PREC.member, seq(
+      field('object', $._primary_expression),
+      optional($.optional_chain),
+      '[',
+      field('index', $._expression),
+      ']',
+    )),
+
+    // The callee's shape is decided by the parser, not by the highlight
+    // queries, so each name gets exactly one capture: a bare `name(…)` is a
+    // function_name (a library or app function; in an @event value, the
+    // view's handler), `a.m(…)` puts a method_name in the member_expression,
+    // and any other callee is an ordinary expression.
+    call_expression: $ => prec(PREC.call, seq(
+      field('function', choice(
+        alias($.identifier, $.function_name),
+        alias($._method, $.member_expression),
+        $.parenthesized_expression,
+        $.call_expression,
+        $.subscript_expression,
+        $.this,
+        $.number,
+        $.string,
+        $.template_string,
+        $.array,
+      )),
+      field('arguments', $.arguments),
+    )),
+
+    _method: $ => seq(
+      field('object', $._primary_expression),
+      choice('.', $.optional_chain),
+      field('property', alias($.identifier, $.method_name)),
+    ),
+
+    // Arrow functions are legal only as call arguments (D176 rule 1).
+    arguments: $ => seq(
+      '(',
+      trailingCommaSep(choice($._expression, $.arrow_function)),
+      ')',
+    ),
+
+    arrow_function: $ => seq(
+      field('parameters', choice($._arrow_parameter, $.formal_parameters)),
+      '=>',
+      field('body', $._expression),
+    ),
+
+    _arrow_parameter: $ => choice(
+      alias($.identifier, $.parameter),
+      $.this,
+    ),
+
+    formal_parameters: $ => seq(
+      '(',
+      trailingCommaSep($._arrow_parameter),
+      ')',
+    ),
+
+    unary_expression: $ => prec.left(PREC.unary, seq(
+      field('operator', choice('!', '-', '+', '~')),
+      field('argument', $._expression),
+    )),
+
+    binary_expression: $ => choice(
+      ...[
+        ['??', PREC.coalesce],
+        ['||', PREC.or],
+        ['&&', PREC.and],
+        ['|', PREC.bitor],
+        ['^', PREC.bitxor],
+        ['&', PREC.bitand],
+        ['==', PREC.equality],
+        ['!=', PREC.equality],
+        ['===', PREC.equality],
+        ['!==', PREC.equality],
+        ['<', PREC.relational],
+        ['<=', PREC.relational],
+        ['>', PREC.relational],
+        ['>=', PREC.relational],
+        ['<<', PREC.shift],
+        ['>>', PREC.shift],
+        ['>>>', PREC.shift],
+        ['+', PREC.additive],
+        ['-', PREC.additive],
+        ['*', PREC.multiplicative],
+        ['/', PREC.multiplicative],
+        ['%', PREC.multiplicative],
+      ].map(([operator, precedence]) => prec.left(precedence, seq(
+        field('left', $._expression),
+        field('operator', operator),
+        field('right', $._expression),
+      ))),
+      prec.right(PREC.exponent, seq(
+        field('left', $._expression),
+        field('operator', '**'),
+        field('right', $._expression),
+      )),
+    ),
+
+    ternary_expression: $ => prec.right(PREC.ternary, seq(
+      field('condition', $._expression),
+      '?',
+      field('consequence', $._expression),
+      ':',
+      field('alternative', $._expression),
     )),
   },
 });

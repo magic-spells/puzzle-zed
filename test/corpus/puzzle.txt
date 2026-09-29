@@ -1,10 +1,10 @@
-==================
+===================
 Puzzle SFC sections
-==================
+===================
 
 <puzzle-view class="page">
   <AlbumCard album={ album } @play:once={ play(album) } />
-  <p>{ title | trim | capitalize }</p>
+  <p>{ capitalize(title.trim()) }</p>
 </puzzle-view>
 
 <puzzle-skeleton min-duration="250">
@@ -40,23 +40,29 @@ export default class Album extends PuzzleView {}
         (normal_attribute
           (attribute_name)
           (interpolation
-            (expression_content))))
+            (identifier))))
       (attribute
         (event_attribute
           (event_name)
           (event_modifier)
           (event_handler
-            (expression_content)))))
+            (call_expression
+              (function_name)
+              (arguments
+                (identifier)))))))
     (text)
     (element
       (start_tag
         (tag_name))
       (interpolation
-        (expression_content)
-        (formatter
-          (formatter_name))
-        (formatter
-          (formatter_name)))
+        (call_expression
+          (function_name)
+          (arguments
+            (call_expression
+              (member_expression
+                (identifier)
+                (method_name))
+              (arguments)))))
       (end_tag
         (tag_name)))
     (text)
@@ -142,7 +148,7 @@ Conditionals and case blocks
     (if_statement
       (if_start
         (directive_name)
-        (expression_content))
+        (identifier))
       (text)
       (element
         (start_tag
@@ -155,13 +161,15 @@ Conditionals and case blocks
         (else_if_start
           (directive_name)
           (directive_name)
-          (expression_content))
+          (identifier))
         (text)
         (element
           (start_tag
             (tag_name))
           (interpolation
-            (expression_content))
+            (member_expression
+              (identifier)
+              (property_identifier)))
           (end_tag
             (tag_name)))
         (text))
@@ -182,7 +190,7 @@ Conditionals and case blocks
     (unless_statement
       (unless_start
         (directive_name)
-        (expression_content))
+        (identifier))
       (element
         (start_tag
           (tag_name))
@@ -195,11 +203,12 @@ Conditionals and case blocks
     (case_statement
       (case_start
         (directive_name)
-        (expression_content))
+        (identifier))
       (when_block
         (when_start
           (directive_name)
-          (expression_content))
+          (string)
+          (string))
         (element
           (start_tag
             (tag_name))
@@ -210,7 +219,7 @@ Conditionals and case blocks
       (when_block
         (when_start
           (directive_name)
-          (expression_content))
+          (string))
         (element
           (start_tag
             (tag_name))
@@ -235,9 +244,9 @@ Conditionals and case blocks
       (section_tag_name)))
   (text))
 
-======================
+==========================
 Collection and range loops
-======================
+==========================
 
 <puzzle-view>
   {#for track in tracks, i}
@@ -258,7 +267,9 @@ Collection and range loops
     (for_statement
       (for_start
         (directive_name)
-        (expression_content))
+        (loop_binding)
+        (identifier)
+        (loop_binding))
       (text)
       (self_closing_element
         (tag_name)
@@ -266,17 +277,22 @@ Collection and range loops
           (normal_attribute
             (attribute_name)
             (interpolation
-              (expression_content))))
+              (identifier))))
         (attribute
           (normal_attribute
             (attribute_name)
             (interpolation
-              (expression_content))))
+              (binary_expression
+                (identifier)
+                (number)))))
         (attribute
           (event_attribute
             (event_name)
             (event_handler
-              (expression_content)))))
+              (call_expression
+                (function_name)
+                (arguments
+                  (identifier)))))))
       (text)
       (for_end
         (directive_name)))
@@ -284,12 +300,14 @@ Collection and range loops
     (for_statement
       (for_start
         (directive_name)
-        (expression_content))
+        (number)
+        (number)
+        (loop_binding))
       (element
         (start_tag
           (tag_name))
         (interpolation
-          (expression_content))
+          (identifier))
         (end_tag
           (tag_name)))
       (for_end
@@ -299,15 +317,15 @@ Collection and range loops
       (section_tag_name)))
   (text))
 
-====================================
+=====================================
 Inline directives and balanced braces
-====================================
+=====================================
 
 <puzzle-view>
   <div
     class="row {#if current}is-current{:else}is-idle{/if}"
     style="background:{ theme.colors[mode] }"
-    data-value={ this.format({ title: track.title }) }
+    data-value={ format({ title: track.title }) }
     @click={ announce({ title: `Now ${track.title}` }) }>
     { track.title }
   </div>
@@ -332,7 +350,7 @@ Inline directives and balanced braces
               (attribute_if_statement
                 (if_start
                   (directive_name)
-                  (expression_content))
+                  (identifier))
                 (attribute_text)
                 (attribute_else_block
                   (else_start
@@ -346,20 +364,44 @@ Inline directives and balanced braces
             (quoted_attribute_value
               (attribute_text)
               (interpolation
-                (expression_content)))))
+                (subscript_expression
+                  (member_expression
+                    (identifier)
+                    (property_identifier))
+                  (identifier))))))
         (attribute
           (normal_attribute
             (attribute_name)
             (interpolation
-              (expression_content))))
+              (call_expression
+                (function_name)
+                (arguments
+                  (object
+                    (pair
+                      (property_identifier)
+                      (member_expression
+                        (identifier)
+                        (property_identifier)))))))))
         (attribute
           (event_attribute
             (event_name)
             (event_handler
-              (expression_content)))))
+              (call_expression
+                (function_name)
+                (arguments
+                  (object
+                    (pair
+                      (property_identifier)
+                      (template_string
+                        (template_substitution
+                          (member_expression
+                            (identifier)
+                            (property_identifier))))))))))))
       (text)
       (interpolation
-        (expression_content))
+        (member_expression
+          (identifier)
+          (property_identifier)))
       (text)
       (end_tag
         (tag_name)))
@@ -386,15 +428,15 @@ Compile-time SVG path
     (text)
     (svg_directive
       (directive_name)
-      (expression_content))
+      (svg_path))
     (text)
     (view_end_tag
       (section_tag_name)))
   (text))
 
-======================
+========================
 Inline template comments
-======================
+========================
 
 <puzzle-view>
   {## a simple note }
@@ -438,9 +480,9 @@ Inline template comments
       (section_tag_name)))
   (text))
 
-======================
+=======================
 Block template comments
-======================
+=======================
 
 <puzzle-view>
   {#comment}
@@ -466,9 +508,9 @@ Block template comments
       (section_tag_name)))
   (text))
 
-======================
+=====================
 Nested block comments
-======================
+=====================
 
 <puzzle-view>
   {#comment} outer {#comment} inner {/comment} still outer {/comment}
@@ -488,9 +530,9 @@ Nested block comments
       (section_tag_name)))
   (text))
 
-==================================
+=====================================
 Comment keyword boundary (block body)
-==================================
+=====================================
 
 <puzzle-view>
   {#comment} {#commentary} and {#comment-x} are NOT nested openers {/comment}
@@ -521,16 +563,16 @@ Comment keyword boundary (standalone)
 
 (ERROR)
 
-======================================
+===============================================
 Paired composition markers with fallback bodies
-======================================
+===============================================
 
 <puzzle-view>
   <Card>
-    <Slot name="header"><h2>{ title | capitalize }</h2></Slot>
+    <Slot name="header"><h2>{ capitalize(title) }</h2></Slot>
     <Children>{#if empty}<p>none</p>{:else}<ItemCard item={ item }/>{/if}</Children>
   </Card>
-  <Slot>{ count | number } left{#svg 'icons/empty.svg'}</Slot>
+  <Slot>{ number_with_delimiter(count) } left{#svg 'icons/empty.svg'}</Slot>
 </puzzle-view>
 
 ---
@@ -543,80 +585,82 @@ Paired composition markers with fallback bodies
     (text)
     (element
       (start_tag
-        name: (tag_name))
+        (tag_name))
       (text)
       (element
         (start_tag
-          name: (tag_name)
+          (tag_name)
           (attribute
             (normal_attribute
-              name: (attribute_name)
-              value: (quoted_attribute_value
+              (attribute_name)
+              (quoted_attribute_value
                 (attribute_text)))))
         (element
           (start_tag
-            name: (tag_name))
+            (tag_name))
           (interpolation
-            value: (expression_content)
-            (formatter
-              name: (formatter_name)))
+            (call_expression
+              (function_name)
+              (arguments
+                (identifier))))
           (end_tag
-            name: (tag_name)))
+            (tag_name)))
         (end_tag
-          name: (tag_name)))
+          (tag_name)))
       (text)
       (element
         (start_tag
-          name: (tag_name))
+          (tag_name))
         (if_statement
           (if_start
             (directive_name)
-            condition: (expression_content))
+            (identifier))
           (element
             (start_tag
-              name: (tag_name))
+              (tag_name))
             (text)
             (end_tag
-              name: (tag_name)))
+              (tag_name)))
           (else_block
             (else_start
               (directive_name))
             (self_closing_element
-              name: (tag_name)
+              (tag_name)
               (attribute
                 (normal_attribute
-                  name: (attribute_name)
-                  value: (interpolation
-                    value: (expression_content))))))
+                  (attribute_name)
+                  (interpolation
+                    (identifier))))))
           (if_end
             (directive_name)))
         (end_tag
-          name: (tag_name)))
+          (tag_name)))
       (text)
       (end_tag
-        name: (tag_name)))
+        (tag_name)))
     (text)
     (element
       (start_tag
-        name: (tag_name))
+        (tag_name))
       (interpolation
-        value: (expression_content)
-        (formatter
-          name: (formatter_name)))
+        (call_expression
+          (function_name)
+          (arguments
+            (identifier))))
       (text)
       (svg_directive
         (directive_name)
-        path: (expression_content))
+        (svg_path))
       (end_tag
-        name: (tag_name)))
+        (tag_name)))
     (text)
     (view_end_tag
       (section_tag_name)))
   (text))
 
-=====================================
+============================================
 Self-closing composition markers still parse
-=====================================
+============================================
 
 <puzzle-view><Children/><Slot name="footer"/></puzzle-view>
 
@@ -640,9 +684,9 @@ Self-closing composition markers still parse
       (section_tag_name)))
   (text))
 
-=====================================
+====================
 Paired Portal marker
-=====================================
+====================
 
 <puzzle-view><Portal><div>Overlay</div></Portal></puzzle-view>
 
@@ -668,37 +712,11 @@ Paired Portal marker
       (section_tag_name)))
   (text))
 
-=====================================
-Formatter pipes and their arguments
-=====================================
+====================================
+Functions are called, and calls nest
+====================================
 
-<puzzle-view>{ price | currency('$', 2) | upper }</puzzle-view>
-
----
-
-(document
-  (text)
-  (view_element
-    (view_start_tag
-      (section_tag_name))
-    (interpolation
-      (expression_content)
-      (formatter
-        (formatter_name)
-        (formatter_arguments
-          (expression_content)
-          (expression_content)))
-      (formatter
-        (formatter_name)))
-    (view_end_tag
-      (section_tag_name)))
-  (text))
-
-=====================================
-Pipes that are not formatters
-=====================================
-
-<puzzle-view>{ a || b }{ tags | join('|') }{ sep ?? '|' }{ this.clean(s, /a|b/g) }</puzzle-view>
+<puzzle-view>{ currency(price, '$', 2) }{ truncate(capitalize(post.body), 120,) }{ specialFormat(product.title) }</puzzle-view>
 
 ---
 
@@ -708,24 +726,73 @@ Pipes that are not formatters
     (view_start_tag
       (section_tag_name))
     (interpolation
-      (expression_content))
+      (call_expression
+        (function_name)
+        (arguments
+          (identifier)
+          (string)
+          (number))))
     (interpolation
-      (expression_content)
-      (formatter
-        (formatter_name)
-        (formatter_arguments
-          (expression_content))))
+      (call_expression
+        (function_name)
+        (arguments
+          (call_expression
+            (function_name)
+            (arguments
+              (member_expression
+                (identifier)
+                (property_identifier))))
+          (number))))
     (interpolation
-      (expression_content))
-    (interpolation
-      (expression_content))
+      (call_expression
+        (function_name)
+        (arguments
+          (member_expression
+            (identifier)
+            (property_identifier)))))
     (view_end_tag
       (section_tag_name)))
   (text))
 
-=====================================
+=============================================
+A '|' in a string or template literal is text
+=============================================
+
+<puzzle-view>{ a || b }{ tags.join('|') }{ sep ?? "|" }{ `a|b ${ c } |` }</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (interpolation
+      (binary_expression
+        (identifier)
+        (identifier)))
+    (interpolation
+      (call_expression
+        (member_expression
+          (identifier)
+          (method_name))
+        (arguments
+          (string))))
+    (interpolation
+      (binary_expression
+        (identifier)
+        (string)))
+    (interpolation
+      (template_string
+        (template_substitution
+          (identifier))))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+===============================
 Raw block keeps HTML structural
-=====================================
+===============================
 
 <puzzle-view>{#raw}<b>bold</b>{/raw}</puzzle-view>
 
@@ -751,9 +818,9 @@ Raw block keeps HTML structural
       (section_tag_name)))
   (text))
 
-=====================================
+===================================
 Raw block opener content is ignored
-=====================================
+===================================
 
 <puzzle-view>{#raw json}{ "a": 1 }{/raw}</puzzle-view>
 
@@ -775,9 +842,9 @@ Raw block opener content is ignored
       (section_tag_name)))
   (text))
 
-=====================================
+=======================================================
 Raw block closer tolerates whitespace and does not nest
-=====================================
+=======================================================
 
 <puzzle-view>{#raw}outer {#raw} inner{/ raw } tail</puzzle-view>
 
@@ -799,9 +866,9 @@ Raw block closer tolerates whitespace and does not nest
       (section_tag_name)))
   (text))
 
-=====================================
+==========================
 Raw block braces are inert
-=====================================
+==========================
 
 <puzzle-view>{#raw}{ nope } {#if x}{/if} {## note} \{ }{/raw}</puzzle-view>
 
@@ -822,9 +889,9 @@ Raw block braces are inert
       (section_tag_name)))
   (text))
 
-=====================================
+======================================================
 Raw block markers and directive attributes are literal
-=====================================
+======================================================
 
 <puzzle-view>{#raw}<Slot/><Portal>x</Portal><Card key={a} ref="r" island flip @click:prevent={go}/><br>{/raw}</puzzle-view>
 
@@ -870,9 +937,9 @@ Raw block markers and directive attributes are literal
       (section_tag_name)))
   (text))
 
-=====================================
+==========================================
 Raw brace-valued attribute with whitespace
-=====================================
+==========================================
 
 <puzzle-view>{#raw}<b k={ a }>x</b>{/raw}</puzzle-view>
 
@@ -901,9 +968,9 @@ Raw brace-valued attribute with whitespace
       (section_tag_name)))
   (text))
 
-=====================================
+=======================================================
 Raw brace-valued attribute with a nested object literal
-=====================================
+=======================================================
 
 <puzzle-view>{#raw}<b data-json={ {"x": 1} }>hi { name }</b>{/ raw }</puzzle-view>
 
@@ -932,9 +999,9 @@ Raw brace-valued attribute with a nested object literal
       (section_tag_name)))
   (text))
 
-=====================================
+===================================================================
 Raw brace-valued attribute is not closed by a brace inside a string
-=====================================
+===================================================================
 
 <puzzle-view>{#raw}<b d={ {"t": "}"} }>x</b>{/raw}</puzzle-view>
 
@@ -963,9 +1030,9 @@ Raw brace-valued attribute is not closed by a brace inside a string
       (section_tag_name)))
   (text))
 
-=====================================
+==================================================================
 Raw brace-valued attribute is not closed by a brace inside a regex
-=====================================
+==================================================================
 
 <puzzle-view>{#raw}<b d={/}/.test(s)} e="1">x</b>{/raw}</puzzle-view>
 
@@ -1031,7 +1098,7 @@ Dotted component tags (component families)
         (start_tag
           name: (tag_name))
         (interpolation
-          value: (expression_content))
+          value: (identifier))
         (end_tag
           name: (tag_name)))
       (text)
@@ -1048,9 +1115,9 @@ Dotted component tags (component families)
       (section_tag_name)))
   (text))
 
-=====================================
+===================================
 Snippet marker with bare parameters
-=====================================
+===================================
 
 <puzzle-view><UserList users={ users }><Snippet fits="row" user group>{ user.name }</Snippet></UserList><Slot name="row" user={ u }>none</Slot><Snippet/></puzzle-view>
 
@@ -1068,7 +1135,7 @@ Snippet marker with bare parameters
           (normal_attribute
             name: (attribute_name)
             value: (interpolation
-              value: (expression_content)))))
+              value: (identifier)))))
       (element
         (start_tag
           name: (tag_name)
@@ -1084,7 +1151,9 @@ Snippet marker with bare parameters
             (normal_attribute
               name: (attribute_name))))
         (interpolation
-          value: (expression_content))
+          value: (member_expression
+            object: (identifier)
+            property: (property_identifier)))
         (end_tag
           name: (tag_name)))
       (end_tag
@@ -1101,7 +1170,7 @@ Snippet marker with bare parameters
           (normal_attribute
             name: (attribute_name)
             value: (interpolation
-              value: (expression_content)))))
+              value: (identifier)))))
       (text)
       (end_tag
         name: (tag_name)))
@@ -1111,9 +1180,9 @@ Snippet marker with bare parameters
       (section_tag_name)))
   (text))
 
-==========================================
+===============================
 Escaped braces are literal text
-==========================================
+===============================
 
 <puzzle-view><p>a \{ not an interpolation \} b</p><p>lone } brace, C:\Users\me</p></puzzle-view>
 
@@ -1165,7 +1234,7 @@ Escaped braces beside a real interpolation
       (escaped_brace)
       (text)
       (interpolation
-        value: (expression_content))
+        value: (identifier))
       (escaped_brace)
       (end_tag
         name: (tag_name)))
@@ -1173,9 +1242,9 @@ Escaped braces beside a real interpolation
       (section_tag_name)))
   (text))
 
-==========================================
+==============================================
 Escaped braces inside a quoted attribute value
-==========================================
+==============================================
 
 <puzzle-view><p title="a \{ b \} c" data-x=a\{b>x</p></puzzle-view>
 
@@ -1209,9 +1278,9 @@ Escaped braces inside a quoted attribute value
       (section_tag_name)))
   (text))
 
-==========================================
+=============================================
 Escaped braces stay literal inside a raw body
-==========================================
+=============================================
 
 <puzzle-view>{#raw}a \{ b \} }{/raw}</puzzle-view>
 
@@ -1232,9 +1301,9 @@ Escaped braces stay literal inside a raw body
       (section_tag_name)))
   (text))
 
-==========================================
+=======================================
 Snippet parameters and marker arguments
-==========================================
+=======================================
 
 <puzzle-view><UserList users={ users }><Snippet user><b>{ user.name }</b></Snippet></UserList><GroupedList><Snippet fits="row" user group>x</Snippet></GroupedList><Children user={ user }>fallback</Children><Slot name="row" user={ user } group={ group }>fallback</Slot></puzzle-view>
 
@@ -1252,7 +1321,7 @@ Snippet parameters and marker arguments
           (normal_attribute
             name: (attribute_name)
             value: (interpolation
-              value: (expression_content)))))
+              value: (identifier)))))
       (element
         (start_tag
           name: (tag_name)
@@ -1263,7 +1332,9 @@ Snippet parameters and marker arguments
           (start_tag
             name: (tag_name))
           (interpolation
-            value: (expression_content))
+            value: (member_expression
+              object: (identifier)
+              property: (property_identifier)))
           (end_tag
             name: (tag_name)))
         (end_tag
@@ -1299,7 +1370,7 @@ Snippet parameters and marker arguments
           (normal_attribute
             name: (attribute_name)
             value: (interpolation
-              value: (expression_content)))))
+              value: (identifier)))))
       (text)
       (end_tag
         name: (tag_name)))
@@ -1315,12 +1386,12 @@ Snippet parameters and marker arguments
           (normal_attribute
             name: (attribute_name)
             value: (interpolation
-              value: (expression_content))))
+              value: (identifier))))
         (attribute
           (normal_attribute
             name: (attribute_name)
             value: (interpolation
-              value: (expression_content)))))
+              value: (identifier)))))
       (text)
       (end_tag
         name: (tag_name)))
@@ -1328,11 +1399,11 @@ Snippet parameters and marker arguments
       (section_tag_name)))
   (text))
 
-==========================================
+========================================
 Range loop headers do not error on '...'
-==========================================
+========================================
 
-<puzzle-view>{#for 1...5}a{/for}{#for i in 1...5}b{/for}{#for 1...5, x}c{/for}</puzzle-view>
+<puzzle-view>{#for 1...5}a{/for}{#for 0 ... n}b{/for}{#for 1...5, x}c{/for}{#for low...items.length, i}d{/for}</puzzle-view>
 
 ---
 
@@ -1344,21 +1415,36 @@ Range loop headers do not error on '...'
     (for_statement
       (for_start
         (directive_name)
-        (expression_content))
+        (number)
+        (number))
       (text)
       (for_end
         (directive_name)))
     (for_statement
       (for_start
         (directive_name)
-        (expression_content))
+        (number)
+        (identifier))
       (text)
       (for_end
         (directive_name)))
     (for_statement
       (for_start
         (directive_name)
-        (expression_content))
+        (number)
+        (number)
+        (loop_binding))
+      (text)
+      (for_end
+        (directive_name)))
+    (for_statement
+      (for_start
+        (directive_name)
+        (identifier)
+        (member_expression
+          (identifier)
+          (property_identifier))
+        (loop_binding))
       (text)
       (for_end
         (directive_name)))
@@ -1366,11 +1452,16 @@ Range loop headers do not error on '...'
       (section_tag_name)))
   (text))
 
-=========================================================
-Formatter chains in brace-only attribute values (D173 V1)
-=========================================================
+==========================================================
+A single '|' parses as an operator in every value position
+==========================================================
 
-<puzzle-view><p title={ price | currency } class={ x | downcase } key={ id | slug }>x</p></puzzle-view>
+<puzzle-view>
+  { price | currency }
+  <p title={ a | b } class="x { c | d }">e</p>
+  <Card total={ n | f } />
+  <Children user={ user | g }/>
+</puzzle-view>
 
 ---
 
@@ -1379,6 +1470,12 @@ Formatter chains in brace-only attribute values (D173 V1)
   (view_element
     (view_start_tag
       (section_tag_name))
+    (text)
+    (interpolation
+      (binary_expression
+        (identifier)
+        (identifier)))
+    (text)
     (element
       (start_tag
         (tag_name)
@@ -1386,46 +1483,21 @@ Formatter chains in brace-only attribute values (D173 V1)
           (normal_attribute
             (attribute_name)
             (interpolation
-              (expression_content)
-              (formatter
-                (formatter_name)))))
+              (binary_expression
+                (identifier)
+                (identifier)))))
         (attribute
           (normal_attribute
             (attribute_name)
-            (interpolation
-              (expression_content)
-              (formatter
-                (formatter_name)))))
-        (attribute
-          (normal_attribute
-            (attribute_name)
-            (interpolation
-              (expression_content)
-              (formatter
-                (formatter_name))))))
+            (quoted_attribute_value
+              (attribute_text)
+              (interpolation
+                (binary_expression
+                  (identifier)
+                  (identifier)))))))
       (text)
       (end_tag
         (tag_name)))
-    (view_end_tag
-      (section_tag_name)))
-  (text))
-
-==================================================================
-Formatter chains in component props and marker arguments (D173 V1)
-==================================================================
-
-<puzzle-view>
-  <Card total={ n | currency('$', 0) } />
-  <Children user={ user | upcase }/>
-</puzzle-view>
-
----
-
-(document
-  (text)
-  (view_element
-    (view_start_tag
-      (section_tag_name))
     (text)
     (self_closing_element
       (tag_name)
@@ -1433,12 +1505,9 @@ Formatter chains in component props and marker arguments (D173 V1)
         (normal_attribute
           (attribute_name)
           (interpolation
-            (expression_content)
-            (formatter
-              (formatter_name)
-              (formatter_arguments
-                (expression_content)
-                (expression_content)))))))
+            (binary_expression
+              (identifier)
+              (identifier))))))
     (text)
     (self_closing_element
       (tag_name)
@@ -1446,22 +1515,24 @@ Formatter chains in component props and marker arguments (D173 V1)
         (normal_attribute
           (attribute_name)
           (interpolation
-            (expression_content)
-            (formatter
-              (formatter_name))))))
+            (binary_expression
+              (identifier)
+              (identifier))))))
     (text)
     (view_end_tag
       (section_tag_name)))
   (text))
 
-=============================================================
-Pipes rejected in condition headers (D173 V1)
-=============================================================
+===================================================
+A single '|' parses as an operator in block headers
+===================================================
 
 <puzzle-view>
-  {#if post.tags | size}a{:else if a | size}b{/if}
-  {#unless x | blank-ish}c{/unless}
-  {#case status | downcase}{:when 'a', 'b'}d{/case}
+  {#if a | b}a{:else if c | d}b{/if}
+  {#unless x | y}c{/unless}
+  {#case s | t}{:when 'a' | u, 'b'}d{/case}
+  {#for item in items | v}h{/for}
+  {#for 1...n | w, i}h{/for}
 </puzzle-view>
 
 ---
@@ -1475,17 +1546,17 @@ Pipes rejected in condition headers (D173 V1)
     (if_statement
       (if_start
         (directive_name)
-        (expression_content)
-        (invalid_formatter
-          (invalid_formatter_name)))
+        (binary_expression
+          (identifier)
+          (identifier)))
       (text)
       (else_if_block
         (else_if_start
           (directive_name)
           (directive_name)
-          (expression_content)
-          (invalid_formatter
-            (invalid_formatter_name)))
+          (binary_expression
+            (identifier)
+            (identifier)))
         (text))
       (if_end
         (directive_name)))
@@ -1493,9 +1564,9 @@ Pipes rejected in condition headers (D173 V1)
     (unless_statement
       (unless_start
         (directive_name)
-        (expression_content)
-        (invalid_formatter
-          (invalid_formatter_name)))
+        (binary_expression
+          (identifier)
+          (identifier)))
       (text)
       (unless_end
         (directive_name)))
@@ -1503,54 +1574,50 @@ Pipes rejected in condition headers (D173 V1)
     (case_statement
       (case_start
         (directive_name)
-        (expression_content)
-        (invalid_formatter
-          (invalid_formatter_name)))
+        (binary_expression
+          (identifier)
+          (identifier)))
       (when_block
         (when_start
           (directive_name)
-          (expression_content))
+          (binary_expression
+            (string)
+            (identifier))
+          (string))
         (text))
       (case_end
+        (directive_name)))
+    (text)
+    (for_statement
+      (for_start
+        (directive_name)
+        (loop_binding)
+        (binary_expression
+          (identifier)
+          (identifier)))
+      (text)
+      (for_end
+        (directive_name)))
+    (text)
+    (for_statement
+      (for_start
+        (directive_name)
+        (number)
+        (binary_expression
+          (identifier)
+          (identifier))
+        (loop_binding))
+      (text)
+      (for_end
         (directive_name)))
     (text)
     (view_end_tag
       (section_tag_name)))
   (text))
 
-=============================================================
-Rejected pipe with arguments and a chain in an if header
-=============================================================
-
-<puzzle-view>{#if items | filter('open') | size}a{/if}</puzzle-view>
-
----
-
-(document
-  (text)
-  (view_element
-    (view_start_tag
-      (section_tag_name))
-    (if_statement
-      (if_start
-        (directive_name)
-        (expression_content)
-        (invalid_formatter
-          (invalid_formatter_name)
-          (formatter_arguments
-            (expression_content)))
-        (invalid_formatter
-          (invalid_formatter_name)))
-      (text)
-      (if_end
-        (directive_name)))
-    (view_end_tag
-      (section_tag_name)))
-  (text))
-
-=============================================================
-Pipes rejected in inline attribute headers (D173 V1)
-=============================================================
+==============================================================
+A single '|' parses as an operator in inline attribute headers
+==============================================================
 
 <puzzle-view><b class="btn {#if tags | size}on{:else if n | pos}p{/if} {#unless x | blank}u{/unless} {#case s | lower}{:when 'a'}w{/case}">e</b></puzzle-view>
 
@@ -1572,17 +1639,17 @@ Pipes rejected in inline attribute headers (D173 V1)
               (attribute_if_statement
                 (if_start
                   (directive_name)
-                  (expression_content)
-                  (invalid_formatter
-                    (invalid_formatter_name)))
+                  (binary_expression
+                    (identifier)
+                    (identifier)))
                 (attribute_text)
                 (attribute_else_if_block
                   (else_if_start
                     (directive_name)
                     (directive_name)
-                    (expression_content)
-                    (invalid_formatter
-                      (invalid_formatter_name)))
+                    (binary_expression
+                      (identifier)
+                      (identifier)))
                   (attribute_text))
                 (if_end
                   (directive_name)))
@@ -1590,9 +1657,9 @@ Pipes rejected in inline attribute headers (D173 V1)
               (attribute_unless_statement
                 (unless_start
                   (directive_name)
-                  (expression_content)
-                  (invalid_formatter
-                    (invalid_formatter_name)))
+                  (binary_expression
+                    (identifier)
+                    (identifier)))
                 (attribute_text)
                 (unless_end
                   (directive_name)))
@@ -1600,13 +1667,13 @@ Pipes rejected in inline attribute headers (D173 V1)
               (attribute_case_statement
                 (case_start
                   (directive_name)
-                  (expression_content)
-                  (invalid_formatter
-                    (invalid_formatter_name)))
+                  (binary_expression
+                    (identifier)
+                    (identifier)))
                 (attribute_when_block
                   (when_start
                     (directive_name)
-                    (expression_content))
+                    (string))
                   (attribute_text))
                 (case_end
                   (directive_name)))))))
@@ -1617,16 +1684,15 @@ Pipes rejected in inline attribute headers (D173 V1)
       (section_tag_name)))
   (text))
 
-=============================================================
-Logical OR and nested pipes in condition headers are not formatter pipes
-=============================================================
+================================================================
+Logical OR stays one operator; a nested '|' is still an operator
+================================================================
 
 <puzzle-view>
-  {#if a || b}x{:else if (flags | mask)}y{/if}
+  {#if a || b}x{:else if (a | b) || c}y{/if}
   {#unless a || b}z{/unless}
-  {#case a || b}{/case}
   <b class="{#if a || b}on{/if}">e</b>
-  {#if this.matches(s, /a|b/) && t === 'x|y'}r{/if}
+  {#if t === 'x|y' && f(a | b)}r{/if}
 </puzzle-view>
 
 ---
@@ -1640,13 +1706,20 @@ Logical OR and nested pipes in condition headers are not formatter pipes
     (if_statement
       (if_start
         (directive_name)
-        (expression_content))
+        (binary_expression
+          (identifier)
+          (identifier)))
       (text)
       (else_if_block
         (else_if_start
           (directive_name)
           (directive_name)
-          (expression_content))
+          (binary_expression
+            (parenthesized_expression
+              (binary_expression
+                (identifier)
+                (identifier)))
+            (identifier)))
         (text))
       (if_end
         (directive_name)))
@@ -1654,16 +1727,11 @@ Logical OR and nested pipes in condition headers are not formatter pipes
     (unless_statement
       (unless_start
         (directive_name)
-        (expression_content))
+        (binary_expression
+          (identifier)
+          (identifier)))
       (text)
       (unless_end
-        (directive_name)))
-    (text)
-    (case_statement
-      (case_start
-        (directive_name)
-        (expression_content))
-      (case_end
         (directive_name)))
     (text)
     (element
@@ -1676,7 +1744,9 @@ Logical OR and nested pipes in condition headers are not formatter pipes
               (attribute_if_statement
                 (if_start
                   (directive_name)
-                  (expression_content))
+                  (binary_expression
+                    (identifier)
+                    (identifier)))
                 (attribute_text)
                 (if_end
                   (directive_name)))))))
@@ -1687,7 +1757,16 @@ Logical OR and nested pipes in condition headers are not formatter pipes
     (if_statement
       (if_start
         (directive_name)
-        (expression_content))
+        (binary_expression
+          (binary_expression
+            (identifier)
+            (string))
+          (call_expression
+            (function_name)
+            (arguments
+              (binary_expression
+                (identifier)
+                (identifier))))))
       (text)
       (if_end
         (directive_name)))
@@ -1696,42 +1775,11 @@ Logical OR and nested pipes in condition headers are not formatter pipes
       (section_tag_name)))
   (text))
 
-=====================================================
-Logical OR and a parenthesized pipe are not formatter pipes
-=====================================================
+======================================================
+A single '|' parses as an operator in an event handler
+======================================================
 
-<puzzle-view>{ a || b }<i title={ a || b }></i>{ (flags | mask) }</puzzle-view>
-
----
-
-(document
-  (text)
-  (view_element
-    (view_start_tag
-      (section_tag_name))
-    (interpolation
-      (expression_content))
-    (element
-      (start_tag
-        (tag_name)
-        (attribute
-          (normal_attribute
-            (attribute_name)
-            (interpolation
-              (expression_content)))))
-      (end_tag
-        (tag_name)))
-    (interpolation
-      (expression_content))
-    (view_end_tag
-      (section_tag_name)))
-  (text))
-
-============================================
-Pipes rejected in event handler bodies (D176)
-============================================
-
-<puzzle-view><button @click={ a | b } @input={ a || b } @keyup={ save(x | trim) }>f</button></puzzle-view>
+<puzzle-view><button @click={ a | b } @input={ a || b } @keyup={ save(x | y) }>f</button></puzzle-view>
 
 ---
 
@@ -1747,19 +1795,26 @@ Pipes rejected in event handler bodies (D176)
           (event_attribute
             (event_name)
             (event_handler
-              (expression_content)
-              (invalid_formatter
-                (invalid_formatter_name)))))
+              (binary_expression
+                (identifier)
+                (identifier)))))
         (attribute
           (event_attribute
             (event_name)
             (event_handler
-              (expression_content))))
+              (binary_expression
+                (identifier)
+                (identifier)))))
         (attribute
           (event_attribute
             (event_name)
             (event_handler
-              (expression_content)))))
+              (call_expression
+                (function_name)
+                (arguments
+                  (binary_expression
+                    (identifier)
+                    (identifier))))))))
       (text)
       (end_tag
         (tag_name)))
@@ -1767,15 +1822,14 @@ Pipes rejected in event handler bodies (D176)
       (section_tag_name)))
   (text))
 
-=========================================================
-Object literals in formatter and call arguments (D173 V8)
-=========================================================
+======================================================
+Object literals in call arguments and as a whole value
+======================================================
 
 <puzzle-view>
-  { 'greeting' | t({ name: user.name }) } after
-  { photo | resize({ height: 480 }) } after
-  <button @click={ save({ id: todo.id }) }>g</button> tail
-  { this.fn({ a: 1 }) } done
+  { t('greeting', { name: user.name, count }) } after
+  <button @click={ save({ id: todo.id, 'the key': 1, }) }>g</button> tail
+  { { a: 1 } } done
 </puzzle-view>
 
 ---
@@ -1787,18 +1841,17 @@ Object literals in formatter and call arguments (D173 V8)
       (section_tag_name))
     (text)
     (interpolation
-      (expression_content)
-      (formatter
-        (formatter_name)
-        (formatter_arguments
-          (expression_content))))
-    (text)
-    (interpolation
-      (expression_content)
-      (formatter
-        (formatter_name)
-        (formatter_arguments
-          (expression_content))))
+      (call_expression
+        (function_name)
+        (arguments
+          (string)
+          (object
+            (pair
+              (property_identifier)
+              (member_expression
+                (identifier)
+                (property_identifier)))
+            (shorthand_property_identifier)))))
     (text)
     (element
       (start_tag
@@ -1807,71 +1860,27 @@ Object literals in formatter and call arguments (D173 V8)
           (event_attribute
             (event_name)
             (event_handler
-              (expression_content)))))
+              (call_expression
+                (function_name)
+                (arguments
+                  (object
+                    (pair
+                      (property_identifier)
+                      (member_expression
+                        (identifier)
+                        (property_identifier)))
+                    (pair
+                      (string)
+                      (number)))))))))
       (text)
       (end_tag
         (tag_name)))
     (text)
     (interpolation
-      (expression_content))
-    (text)
-    (view_end_tag
-      (section_tag_name)))
-  (text))
-
-========================================================
-Pipes rejected in loop headers and when values (D173 V1)
-========================================================
-
-<puzzle-view>
-  {#for item in items | sort}h{/for}
-  {#for i in 1...n | clamp, idx}h{/for}
-  {#case s}{:when 'a' | x, 'b'}i{/case}
-</puzzle-view>
-
----
-
-(document
-  (text)
-  (view_element
-    (view_start_tag
-      (section_tag_name))
-    (text)
-    (for_statement
-      (for_start
-        (directive_name)
-        (expression_content)
-        (invalid_formatter
-          (invalid_formatter_name)))
-      (text)
-      (for_end
-        (directive_name)))
-    (text)
-    (for_statement
-      (for_start
-        (directive_name)
-        (expression_content)
-        (invalid_formatter
-          (invalid_formatter_name))
-        (expression_content))
-      (text)
-      (for_end
-        (directive_name)))
-    (text)
-    (case_statement
-      (case_start
-        (directive_name)
-        (expression_content))
-      (when_block
-        (when_start
-          (directive_name)
-          (expression_content)
-          (invalid_formatter
-            (invalid_formatter_name))
-          (expression_content))
-        (text))
-      (case_end
-        (directive_name)))
+      (object
+        (pair
+          (property_identifier)
+          (number))))
     (text)
     (view_end_tag
       (section_tag_name)))
@@ -1883,7 +1892,7 @@ Preformatted whitespace around an interpolation
 
 <puzzle-view>
   <pre>
-    line { v | upcase }
+    line { v.toUpperCase() }
       indented
   </pre>
 </puzzle-view>
@@ -1901,9 +1910,11 @@ Preformatted whitespace around an interpolation
         (tag_name))
       (text)
       (interpolation
-        (expression_content)
-        (formatter
-          (formatter_name)))
+        (call_expression
+          (member_expression
+            (identifier)
+            (method_name))
+          (arguments)))
       (text)
       (end_tag
         (tag_name)))
@@ -1912,9 +1923,9 @@ Preformatted whitespace around an interpolation
       (section_tag_name)))
   (text))
 
-====================================================================
+================================================================
 Quoted attribute values allow the other quote and angle brackets
-====================================================================
+================================================================
 
 <puzzle-view>
   <p hint="the view's data()" class="[&>svg]:size-4 {#if on}a{/if}" title='say "hi" > { name }'>x</p>
@@ -1944,7 +1955,7 @@ Quoted attribute values allow the other quote and angle brackets
               (attribute_if_statement
                 (if_start
                   (directive_name)
-                  (expression_content))
+                  (identifier))
                 (attribute_text)
                 (if_end
                   (directive_name))))))
@@ -1954,7 +1965,7 @@ Quoted attribute values allow the other quote and angle brackets
             (quoted_attribute_value
               (attribute_text)
               (interpolation
-                (expression_content))))))
+                (identifier))))))
       (text)
       (end_tag
         (tag_name)))
@@ -1963,11 +1974,11 @@ Quoted attribute values allow the other quote and angle brackets
       (section_tag_name)))
   (text))
 
-=====================================================
-Formatter names are identifiers, optionally kebab-case
-=====================================================
+==============================================
+Bare calls, method calls and global namespaces
+==============================================
 
-<puzzle-view>{ n | compact_number }{ d | my-format('x') }{ v | $fmt | t2 }</puzzle-view>
+<puzzle-view>{ compact_number(n) }{ name.trim().toUpperCase() }{ user?.name?.at(0) }{ Math.round(x / 2) }{ Number(y) }{ (currency)(price) }</puzzle-view>
 
 ---
 
@@ -1977,33 +1988,63 @@ Formatter names are identifiers, optionally kebab-case
     (view_start_tag
       (section_tag_name))
     (interpolation
-      (expression_content)
-      (formatter
-        (formatter_name)))
+      (call_expression
+        (function_name)
+        (arguments
+          (identifier))))
     (interpolation
-      (expression_content)
-      (formatter
-        (formatter_name)
-        (formatter_arguments
-          (expression_content))))
+      (call_expression
+        (member_expression
+          (call_expression
+            (member_expression
+              (identifier)
+              (method_name))
+            (arguments))
+          (method_name))
+        (arguments)))
     (interpolation
-      (expression_content)
-      (formatter
-        (formatter_name))
-      (formatter
-        (formatter_name)))
+      (call_expression
+        (member_expression
+          (member_expression
+            (identifier)
+            (optional_chain)
+            (property_identifier))
+          (optional_chain)
+          (method_name))
+        (arguments
+          (number))))
+    (interpolation
+      (call_expression
+        (member_expression
+          (identifier)
+          (method_name))
+        (arguments
+          (binary_expression
+            (identifier)
+            (number)))))
+    (interpolation
+      (call_expression
+        (function_name)
+        (arguments
+          (identifier))))
+    (interpolation
+      (call_expression
+        (parenthesized_expression
+          (identifier))
+        (arguments
+          (identifier))))
     (view_end_tag
       (section_tag_name)))
   (text))
 
-=====================================================
-Markup formatters parse like any other formatter
-=====================================================
+==========================================
+Markup functions parse like any other call
+==========================================
 
 <puzzle-view>
-  <p>{ post.body | raw }</p>
-  { note | trim | newline_to_br }
-  <p title={ html | raw }>{ html | raw | upcase }</p>
+  <p>{ raw(post.body) }</p>
+  { newline_to_br(note.trim()) }
+  <p title={ raw(html) }>{ truncate(raw(html), 3) }</p>
 </puzzle-view>
 
 ---
@@ -2018,18 +2059,24 @@ Markup formatters parse like any other formatter
       (start_tag
         (tag_name))
       (interpolation
-        (expression_content)
-        (formatter
-          (formatter_name)))
+        (call_expression
+          (function_name)
+          (arguments
+            (member_expression
+              (identifier)
+              (property_identifier)))))
       (end_tag
         (tag_name)))
     (text)
     (interpolation
-      (expression_content)
-      (formatter
-        (formatter_name))
-      (formatter
-        (formatter_name)))
+      (call_expression
+        (function_name)
+        (arguments
+          (call_expression
+            (member_expression
+              (identifier)
+              (method_name))
+            (arguments)))))
     (text)
     (element
       (start_tag
@@ -2038,15 +2085,19 @@ Markup formatters parse like any other formatter
           (normal_attribute
             (attribute_name)
             (interpolation
-              (expression_content)
-              (formatter
-                (formatter_name))))))
+              (call_expression
+                (function_name)
+                (arguments
+                  (identifier)))))))
       (interpolation
-        (expression_content)
-        (formatter
-          (formatter_name))
-        (formatter
-          (formatter_name)))
+        (call_expression
+          (function_name)
+          (arguments
+            (call_expression
+              (function_name)
+              (arguments
+                (identifier)))
+            (number))))
       (end_tag
         (tag_name)))
     (text)
@@ -2054,17 +2105,18 @@ Markup formatters parse like any other formatter
       (section_tag_name)))
   (text))
 
-=====================================================
-Template values in the data language (D176)
-=====================================================
+===========================
+Template expressions (D176)
+===========================
 
 <puzzle-view>
-  {#if todos.size > 0}
-    <p class={ [active && 'on', 'row'] }>{ title.size } of { items[items.size - 1].name }</p>
+  {#if todos.length > 0 && !loading}
+    <p class={ [active && 'on', 'row'] }>{ title.length } of { items[items.length - 1].name }</p>
   {/if}
-  <button disabled={ !this.canAdd }>{ 'cart.count' | t({ count: n, unit }) }</button>
-  { price * qty | currency } { subtitle ?? 'Untitled' } { followers | compact_number }
-  { createdAt | datetime('short') } { n | pluralize('comment') }
+  {#for t in todos.filter(t => !t.done).toSorted((a, b) => a.rank - b.rank), i}<i>{ i + 1 }</i>{/for}
+  { price * qty % 3 >= 1 ? `${ n } items` : subtitle ?? 'Untitled' }
+  { -a + +b <= c == d !== e }
+  <button @click={ open ? close(event) : null }>x</button>
 </puzzle-view>
 
 ---
@@ -2078,7 +2130,14 @@ Template values in the data language (D176)
     (if_statement
       (if_start
         (directive_name)
-        (expression_content))
+        (binary_expression
+          (binary_expression
+            (member_expression
+              (identifier)
+              (property_identifier))
+            (number))
+          (unary_expression
+            (identifier))))
       (text)
       (element
         (start_tag
@@ -2087,71 +2146,131 @@ Template values in the data language (D176)
             (normal_attribute
               (attribute_name)
               (interpolation
-                (expression_content)))))
+                (array
+                  (binary_expression
+                    (identifier)
+                    (string))
+                  (string))))))
         (interpolation
-          (expression_content))
+          (member_expression
+            (identifier)
+            (property_identifier)))
         (text)
         (interpolation
-          (expression_content))
+          (member_expression
+            (subscript_expression
+              (identifier)
+              (binary_expression
+                (member_expression
+                  (identifier)
+                  (property_identifier))
+                (number)))
+            (property_identifier)))
         (end_tag
           (tag_name)))
       (text)
       (if_end
         (directive_name)))
     (text)
+    (for_statement
+      (for_start
+        (directive_name)
+        (loop_binding)
+        (call_expression
+          (member_expression
+            (call_expression
+              (member_expression
+                (identifier)
+                (method_name))
+              (arguments
+                (arrow_function
+                  (parameter)
+                  (unary_expression
+                    (member_expression
+                      (identifier)
+                      (property_identifier))))))
+            (method_name))
+          (arguments
+            (arrow_function
+              (formal_parameters
+                (parameter)
+                (parameter))
+              (binary_expression
+                (member_expression
+                  (identifier)
+                  (property_identifier))
+                (member_expression
+                  (identifier)
+                  (property_identifier))))))
+        (loop_binding))
+      (element
+        (start_tag
+          (tag_name))
+        (interpolation
+          (binary_expression
+            (identifier)
+            (number)))
+        (end_tag
+          (tag_name)))
+      (for_end
+        (directive_name)))
+    (text)
+    (interpolation
+      (ternary_expression
+        (binary_expression
+          (binary_expression
+            (binary_expression
+              (identifier)
+              (identifier))
+            (number))
+          (number))
+        (template_string
+          (template_substitution
+            (identifier)))
+        (binary_expression
+          (identifier)
+          (string))))
+    (text)
+    (interpolation
+      (binary_expression
+        (binary_expression
+          (binary_expression
+            (binary_expression
+              (unary_expression
+                (identifier))
+              (unary_expression
+                (identifier)))
+            (identifier))
+          (identifier))
+        (identifier)))
+    (text)
     (element
       (start_tag
         (tag_name)
         (attribute
-          (normal_attribute
-            (attribute_name)
-            (interpolation
-              (expression_content)))))
-      (interpolation
-        (expression_content)
-        (formatter
-          (formatter_name)
-          (formatter_arguments
-            (expression_content))))
+          (event_attribute
+            (event_name)
+            (event_handler
+              (ternary_expression
+                (identifier)
+                (call_expression
+                  (function_name)
+                  (arguments
+                    (identifier)))
+                (identifier))))))
+      (text)
       (end_tag
         (tag_name)))
-    (text)
-    (interpolation
-      (expression_content)
-      (formatter
-        (formatter_name)))
-    (text)
-    (interpolation
-      (expression_content))
-    (text)
-    (interpolation
-      (expression_content)
-      (formatter
-        (formatter_name)))
-    (text)
-    (interpolation
-      (expression_content)
-      (formatter
-        (formatter_name)
-        (formatter_arguments
-          (expression_content))))
-    (text)
-    (interpolation
-      (expression_content)
-      (formatter
-        (formatter_name)
-        (formatter_arguments
-          (expression_content))))
     (text)
     (view_end_tag
       (section_tag_name)))
   (text))
 
-=====================================================
-What follows a pipe must be a formatter name
-=====================================================
+==================================
+`this` parses so it can be flagged
+==================================
 
-<puzzle-view>{ mask | bit-1 }<p>{ w / 2 | 0 }</p>{ p | fmt.eur }{ a | fmt- | f--g }{ ok }</puzzle-view>
+<puzzle-view>{ this }{ this.x }{ x.this }{ { this } }{ items.map(this => 1) }{ thisValue }</puzzle-view>
 
 ---
 
@@ -2161,39 +2280,38 @@ What follows a pipe must be a formatter name
     (view_start_tag
       (section_tag_name))
     (interpolation
-      (expression_content)
-      (formatter
-        (formatter_name)))
-    (element
-      (start_tag
-        (tag_name))
-      (interpolation
-        (expression_content)
-        (formatter
-          (formatter_name)))
-      (end_tag
-        (tag_name)))
+      (this))
     (interpolation
-      (expression_content)
-      (formatter
-        (formatter_name)))
+      (member_expression
+        (this)
+        (property_identifier)))
     (interpolation
-      (expression_content)
-      (formatter
-        (formatter_name))
-      (formatter
-        (formatter_name)))
+      (member_expression
+        (identifier)
+        (property_identifier)))
     (interpolation
-      (expression_content))
+      (object
+        (this)))
+    (interpolation
+      (call_expression
+        (member_expression
+          (identifier)
+          (method_name))
+        (arguments
+          (arrow_function
+            (this)
+            (number)))))
+    (interpolation
+      (identifier))
     (view_end_tag
       (section_tag_name)))
   (text))
 
-=====================================================
-Empty parentheses are a call with no arguments
-=====================================================
+====================================================================
+Numbers, optional chains, Unicode names and nested template literals
+====================================================================
 
-<puzzle-view>{ x | raw() }{ y | newline_to_br( ) }{ z | f('a') }</puzzle-view>
+<puzzle-view>{ 5..toFixed(1) }{ a?.5:1 }{ a?.b ?. c }{ .5 + 1.e3 + 2E-3 }{ größe + π }{ `a ${ `b ${ c }` } }` }</puzzle-view>
 
 ---
 
@@ -2203,19 +2321,81 @@ Empty parentheses are a call with no arguments
     (view_start_tag
       (section_tag_name))
     (interpolation
-      (expression_content)
-      (formatter
-        (formatter_name)))
+      (call_expression
+        (member_expression
+          (number)
+          (method_name))
+        (arguments
+          (number))))
     (interpolation
-      (expression_content)
-      (formatter
-        (formatter_name)))
+      (ternary_expression
+        (identifier)
+        (number)
+        (number)))
     (interpolation
-      (expression_content)
-      (formatter
-        (formatter_name)
-        (formatter_arguments
-          (expression_content))))
+      (member_expression
+        (member_expression
+          (identifier)
+          (optional_chain)
+          (property_identifier))
+        (optional_chain)
+        (property_identifier)))
+    (interpolation
+      (binary_expression
+        (binary_expression
+          (number)
+          (number))
+        (number)))
+    (interpolation
+      (binary_expression
+        (identifier)
+        (identifier)))
+    (interpolation
+      (template_string
+        (template_substitution
+          (template_string
+            (template_substitution
+              (identifier))))))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+===========================================
+Excluded operators still parse as operators
+===========================================
+
+<puzzle-view>{ a & b }{ a ^ b }{ a ** 2 }{ ~a }{ a << 1 >> 2 >>> 3 }</puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (interpolation
+      (binary_expression
+        (identifier)
+        (identifier)))
+    (interpolation
+      (binary_expression
+        (identifier)
+        (identifier)))
+    (interpolation
+      (binary_expression
+        (identifier)
+        (number)))
+    (interpolation
+      (unary_expression
+        (identifier)))
+    (interpolation
+      (binary_expression
+        (binary_expression
+          (binary_expression
+            (identifier)
+            (number))
+          (number))
+        (number)))
     (view_end_tag
       (section_tag_name)))
   (text))

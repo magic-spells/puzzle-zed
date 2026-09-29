@@ -1,3 +1,8 @@
+; Editors disagree on which capture wins when two patterns match one node, so
+; every pattern here is written to be mutually exclusive with every other: no
+; node ever picks up two captures from two patterns, and the order does not
+; matter.
+
 (comment) @comment
 (inline_comment) @comment
 (block_comment) @comment
@@ -48,108 +53,6 @@
 (attribute_name) @attribute
 (event_name) @function
 (directive_name) @keyword
-; A formatter name is an identifier, optionally kebab-case, where every '-'
-; starts a word with a letter — the compiler's isFormatterName. formatter_name
-; parses looser on purpose, so a malformed one (`| 0`, `| bit-1`, `| fmt.eur`,
-; `| fmt-`) is flagged whole here instead of vanishing into an ERROR node.
-((formatter_name) @invalid
-  (#not-match? @invalid "^[A-Za-z_$][A-Za-z0-9_$]*(-[A-Za-z][A-Za-z0-9_$]*)*$"))
-
-; Every well-formed formatter name but the two markup formatters.
-((formatter_name) @function
-  (#match? @function "^[A-Za-z_$][A-Za-z0-9_$]*(-[A-Za-z][A-Za-z0-9_$]*)*$")
-  (#not-any-of? @function "raw" "newline_to_br"))
-
-; The markup formatters `raw` and `newline_to_br` (D174) render HTML, so each
-; is legal only as the LAST link of a TEXT interpolation, with no arguments
-; (empty parentheses, `raw()`, are no arguments and make no formatter_arguments),
-; and not directly inside an element whose content is text (<textarea>,
-; <title>, …) or foreign (<svg>, <math>). Every other placement is a compile
-; error. The patterns below split the two names into exactly one legal and
-; one invalid capture per node. The element test reads the start tag's text
-; rather than capturing its tag_name, so the tag keeps its one @tag capture. A
-; markup formatter nested deeper inside a text-only element (under an {#if},
-; say) is left to the compiler.
-([
-  (document
-    (interpolation (formatter name: (formatter_name) @function .) .))
-  (view_element
-    (interpolation (formatter name: (formatter_name) @function .) .))
-  (skeleton_element
-    (interpolation (formatter name: (formatter_name) @function .) .))
-  (if_statement
-    (interpolation (formatter name: (formatter_name) @function .) .))
-  (else_if_block
-    (interpolation (formatter name: (formatter_name) @function .) .))
-  (else_block
-    (interpolation (formatter name: (formatter_name) @function .) .))
-  (unless_statement
-    (interpolation (formatter name: (formatter_name) @function .) .))
-  (when_block
-    (interpolation (formatter name: (formatter_name) @function .) .))
-  (case_else_block
-    (interpolation (formatter name: (formatter_name) @function .) .))
-  (for_statement
-    (interpolation (formatter name: (formatter_name) @function .) .))
-  (for_else_block
-    (interpolation (formatter name: (formatter_name) @function .) .))
-  ]
-  (#any-of? @function "raw" "newline_to_br"))
-
-((element
-  (start_tag) @_start
-  (interpolation (formatter name: (formatter_name) @function .) .))
-  (#any-of? @function "raw" "newline_to_br")
-  (#not-match? @_start "^<(script|style|textarea|title|noscript|xmp|iframe|noembed|noframes|plaintext|svg|math)[\\s/>]"))
-
-((element
-  (start_tag) @_start
-  (interpolation (formatter name: (formatter_name) @invalid .) .))
-  (#any-of? @invalid "raw" "newline_to_br")
-  (#match? @_start "^<(script|style|textarea|title|noscript|xmp|iframe|noembed|noframes|plaintext|svg|math)[\\s/>]"))
-
-; With arguments, or followed by another formatter.
-((formatter
-  name: (formatter_name) @invalid
-  (formatter_arguments))
-  (#any-of? @invalid "raw" "newline_to_br"))
-
-((interpolation
-  (formatter name: (formatter_name) @invalid .)
-  .
-  (formatter))
-  (#any-of? @invalid "raw" "newline_to_br"))
-
-; In an attribute value, a component prop or a marker argument.
-([
-  (normal_attribute
-    value: (interpolation (formatter name: (formatter_name) @invalid .) .))
-  (quoted_attribute_value
-    (interpolation (formatter name: (formatter_name) @invalid .) .))
-  (attribute_if_statement
-    (interpolation (formatter name: (formatter_name) @invalid .) .))
-  (attribute_else_if_block
-    (interpolation (formatter name: (formatter_name) @invalid .) .))
-  (attribute_else_block
-    (interpolation (formatter name: (formatter_name) @invalid .) .))
-  (attribute_unless_statement
-    (interpolation (formatter name: (formatter_name) @invalid .) .))
-  (attribute_when_block
-    (interpolation (formatter name: (formatter_name) @invalid .) .))
-  (attribute_case_else_block
-    (interpolation (formatter name: (formatter_name) @invalid .) .))
-  (attribute_for_statement
-    (interpolation (formatter name: (formatter_name) @invalid .) .))
-  (attribute_for_else_block
-    (interpolation (formatter name: (formatter_name) @invalid .) .))
-  ]
-  (#any-of? @invalid "raw" "newline_to_br"))
-
-; A formatter chain where the compiler rejects one (D173 V1) — any block
-; header: {#if}, {:else if}, {#unless}, {#case} (inline ones in an attribute
-; value too), {#for}, and a {:when} value — and an @event handler body, which
-; is JavaScript but has no bitwise OR (D176). '||' is logical OR, never a pipe.
-(invalid_formatter_name) @invalid
 (attribute_text) @string
 (unquoted_attribute_value) @string
 
@@ -175,9 +78,344 @@
 (raw_brace_value) @string
 (raw_opener_rest) @comment
 
+; ----- Template expressions (D176) ----------------------------------------
+; Every expression position parses as one JavaScript-shaped expression.
+
+(number) @number
+(string) @string
+(template_string) @string
+(svg_path) @string
+"${" @punctuation.special
+
+; `this` is not a template identifier anywhere (D176 rule 7) — interpolations,
+; attribute values and props, block headers, {:when} values, the {#for}
+; header, arrow parameters, object shorthand and @event handlers alike. A
+; property named `this` (`x.this`) is a property_identifier, not this node.
+(this) @invalid
+
+((identifier) @variable.special
+  (#any-of? @variable.special "Math" "Object" "Array"))
+
+((identifier) @boolean
+  (#any-of? @boolean "true" "false"))
+
+((identifier) @constant.builtin
+  (#any-of? @constant.builtin "null" "undefined" "NaN" "Infinity"))
+
+((identifier) @variable
+  (#not-any-of? @variable
+    "Math" "Object" "Array" "true" "false" "null" "undefined" "NaN" "Infinity"))
+
+(property_identifier) @property
+(shorthand_property_identifier) @property
+(method_name) @function.method
+(parameter) @variable.parameter
+(loop_binding) @variable.parameter
+
+; A bare call: the function library (the 19 standard functions plus
+; PuzzleKit's `link` and `timeago`) and the JavaScript global functions are
+; builtins; any other name is an app function registered through the
+; `formatters` config map, or, in an @event value, the view's handler.
+; `raw` and `newline_to_br` are placed by the patterns further down.
+((function_name) @function.builtin
+  (#any-of? @function.builtin
+    "round" "currency" "percentage" "number_with_delimiter" "compact_number"
+    "pluralize" "capitalize" "truncate" "strip_html" "strip_newlines"
+    "escape" "json" "date" "time" "datetime" "in_timezone" "t"
+    "link" "timeago"
+    "Number" "String" "Boolean" "parseInt" "parseFloat" "isNaN" "isFinite"))
+
+((function_name) @function
+  (#not-any-of? @function
+    "round" "currency" "percentage" "number_with_delimiter" "compact_number"
+    "pluralize" "capitalize" "truncate" "strip_html" "strip_newlines"
+    "escape" "json" "date" "time" "datetime" "in_timezone" "t"
+    "link" "timeago"
+    "Number" "String" "Boolean" "parseInt" "parseFloat" "isNaN" "isFinite"
+    "raw" "newline_to_br"))
+
+; `raw` and `newline_to_br` render markup, so each is legal only as the whole
+; of a TEXT interpolation — the outermost call, parentheses aside — and not
+; directly inside an element whose content is text (<textarea>, <title>, …)
+; or foreign (<svg>, <math>) (D174, D176 rule 4). The patterns below give each
+; placement exactly one capture. The element test reads the start tag's text
+; rather than capturing its tag_name, so the tag keeps its one @tag capture.
+; A placement none of them names — a markup call inside parentheses inside
+; another expression, or nested deeper in a text-only element — is left to
+; the compiler.
+([
+  (document
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @function.builtin)
+        (parenthesized_expression (call_expression function: (function_name) @function.builtin))
+      ]))
+  (view_element
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @function.builtin)
+        (parenthesized_expression (call_expression function: (function_name) @function.builtin))
+      ]))
+  (skeleton_element
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @function.builtin)
+        (parenthesized_expression (call_expression function: (function_name) @function.builtin))
+      ]))
+  (if_statement
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @function.builtin)
+        (parenthesized_expression (call_expression function: (function_name) @function.builtin))
+      ]))
+  (else_if_block
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @function.builtin)
+        (parenthesized_expression (call_expression function: (function_name) @function.builtin))
+      ]))
+  (else_block
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @function.builtin)
+        (parenthesized_expression (call_expression function: (function_name) @function.builtin))
+      ]))
+  (unless_statement
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @function.builtin)
+        (parenthesized_expression (call_expression function: (function_name) @function.builtin))
+      ]))
+  (when_block
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @function.builtin)
+        (parenthesized_expression (call_expression function: (function_name) @function.builtin))
+      ]))
+  (case_else_block
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @function.builtin)
+        (parenthesized_expression (call_expression function: (function_name) @function.builtin))
+      ]))
+  (for_statement
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @function.builtin)
+        (parenthesized_expression (call_expression function: (function_name) @function.builtin))
+      ]))
+  (for_else_block
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @function.builtin)
+        (parenthesized_expression (call_expression function: (function_name) @function.builtin))
+      ]))
+  ]
+  (#any-of? @function.builtin "raw" "newline_to_br"))
+
+((element
+  (start_tag) @_start
+  (interpolation
+    value: [
+      (call_expression function: (function_name) @function.builtin)
+      (parenthesized_expression (call_expression function: (function_name) @function.builtin))
+    ]))
+  (#any-of? @function.builtin "raw" "newline_to_br")
+  (#not-match? @_start "^<(script|style|textarea|title|noscript|xmp|iframe|noembed|noframes|plaintext|svg|math)[\\s/>]"))
+
+((element
+  (start_tag) @_start
+  (interpolation
+    value: [
+      (call_expression function: (function_name) @invalid)
+      (parenthesized_expression (call_expression function: (function_name) @invalid))
+    ]))
+  (#any-of? @invalid "raw" "newline_to_br")
+  (#match? @_start "^<(script|style|textarea|title|noscript|xmp|iframe|noembed|noframes|plaintext|svg|math)[\\s/>]"))
+
+; In an attribute value, a component prop, a marker argument, `key=`/`flip=`,
+; or an inline block inside a quoted attribute value.
+([
+  (normal_attribute
+    value: (interpolation
+      value: [
+        (call_expression function: (function_name) @invalid)
+        (parenthesized_expression (call_expression function: (function_name) @invalid))
+      ]))
+  (quoted_attribute_value
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @invalid)
+        (parenthesized_expression (call_expression function: (function_name) @invalid))
+      ]))
+  (attribute_if_statement
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @invalid)
+        (parenthesized_expression (call_expression function: (function_name) @invalid))
+      ]))
+  (attribute_else_if_block
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @invalid)
+        (parenthesized_expression (call_expression function: (function_name) @invalid))
+      ]))
+  (attribute_else_block
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @invalid)
+        (parenthesized_expression (call_expression function: (function_name) @invalid))
+      ]))
+  (attribute_unless_statement
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @invalid)
+        (parenthesized_expression (call_expression function: (function_name) @invalid))
+      ]))
+  (attribute_when_block
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @invalid)
+        (parenthesized_expression (call_expression function: (function_name) @invalid))
+      ]))
+  (attribute_case_else_block
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @invalid)
+        (parenthesized_expression (call_expression function: (function_name) @invalid))
+      ]))
+  (attribute_for_statement
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @invalid)
+        (parenthesized_expression (call_expression function: (function_name) @invalid))
+      ]))
+  (attribute_for_else_block
+    (interpolation
+      value: [
+        (call_expression function: (function_name) @invalid)
+        (parenthesized_expression (call_expression function: (function_name) @invalid))
+      ]))
+  ]
+  (#any-of? @invalid "raw" "newline_to_br"))
+
+; In a block header: {#if}, {:else if}, {#unless}, {#case}, a {:when} value,
+; or the {#for} collection or range bounds.
+([
+  (if_start
+    condition: [
+      (call_expression function: (function_name) @invalid)
+      (parenthesized_expression (call_expression function: (function_name) @invalid))
+    ])
+  (else_if_start
+    condition: [
+      (call_expression function: (function_name) @invalid)
+      (parenthesized_expression (call_expression function: (function_name) @invalid))
+    ])
+  (unless_start
+    condition: [
+      (call_expression function: (function_name) @invalid)
+      (parenthesized_expression (call_expression function: (function_name) @invalid))
+    ])
+  (case_start
+    value: [
+      (call_expression function: (function_name) @invalid)
+      (parenthesized_expression (call_expression function: (function_name) @invalid))
+    ])
+  (when_start
+    value: [
+      (call_expression function: (function_name) @invalid)
+      (parenthesized_expression (call_expression function: (function_name) @invalid))
+    ])
+  (for_start
+    [
+      (call_expression function: (function_name) @invalid)
+      (parenthesized_expression (call_expression function: (function_name) @invalid))
+    ])
+  ]
+  (#any-of? @invalid "raw" "newline_to_br"))
+
+; Nested inside another expression: a call argument (an @event handler's
+; arguments included), an operand, a receiver, an element, a property value,
+; a template substitution or an arrow body. Its output is markup, and no
+; function or operator takes markup as input.
+([
+  (arguments (call_expression function: (function_name) @invalid))
+  (binary_expression (call_expression function: (function_name) @invalid))
+  (unary_expression (call_expression function: (function_name) @invalid))
+  (ternary_expression (call_expression function: (function_name) @invalid))
+  (member_expression (call_expression function: (function_name) @invalid))
+  (subscript_expression (call_expression function: (function_name) @invalid))
+  (call_expression (call_expression function: (function_name) @invalid))
+  (array (call_expression function: (function_name) @invalid))
+  (pair (call_expression function: (function_name) @invalid))
+  (template_substitution (call_expression function: (function_name) @invalid))
+  (arrow_function (call_expression function: (function_name) @invalid))
+  ]
+  (#any-of? @invalid "raw" "newline_to_br"))
+
+; The whole of an @event value calls the view's handler first (D176 rule 4),
+; so a handler that happens to be named `raw` is the view's, not markup.
+((event_handler
+  value: (call_expression function: (function_name) @function))
+  (#any-of? @function "raw" "newline_to_br"))
+
+; There is no pipe and no bitwise OR (D176): a single `|` anywhere in a
+; template expression — text, attribute value, prop, marker argument, block
+; header or @event handler — is a compile error. `||` is its own operator, and
+; a '|' inside a string or template literal is text.
+(binary_expression
+  operator: "|" @invalid)
+
+((binary_expression
+  operator: _ @operator)
+  (#not-eq? @operator "|"))
+
+(unary_expression
+  operator: _ @operator)
+
+(ternary_expression
+  ["?" ":"] @operator)
+
 [
-  "<"
-  ">"
+  "=>"
+  "..."
+  ".."
+] @operator
+
+"in" @keyword
+
+[
+  "."
+  (optional_chain)
+] @punctuation.delimiter
+
+(pair
+  ":" @punctuation.delimiter)
+
+; ----- Punctuation --------------------------------------------------------
+; '<', '>', '/' and ':' are also expression operators, so their markup uses
+; are captured through their parents.
+[
+  (start_tag ["<" ">"] @punctuation.bracket)
+  (end_tag ">" @punctuation.bracket)
+  (self_closing_element "<" @punctuation.bracket)
+  (void_element ["<" ">" "/"] @punctuation.bracket)
+  (view_start_tag ["<" ">"] @punctuation.bracket)
+  (view_end_tag ">" @punctuation.bracket)
+  (skeleton_start_tag ["<" ">"] @punctuation.bracket)
+  (skeleton_end_tag ">" @punctuation.bracket)
+  (script_start_tag ["<" ">"] @punctuation.bracket)
+  (script_end_tag ">" @punctuation.bracket)
+  (style_start_tag ["<" ">"] @punctuation.bracket)
+  (style_end_tag ">" @punctuation.bracket)
+  (raw_start_tag ["<" ">"] @punctuation.bracket)
+  (raw_end_tag ">" @punctuation.bracket)
+  (raw_self_closing_element "<" @punctuation.bracket)
+  (raw_void_element ["<" ">" "/"] @punctuation.bracket)
+]
+
+[
   "</"
   "/>"
 ] @punctuation.bracket
@@ -187,14 +425,23 @@
   "}"
   "("
   ")"
+  "["
+  "]"
 ] @punctuation.bracket
 
+"#" @punctuation.special
+
 [
-  "#"
-  ":"
-  "/"
-  "|"
-] @punctuation.special
+  (if_end "/" @punctuation.special)
+  (unless_end "/" @punctuation.special)
+  (case_end "/" @punctuation.special)
+  (for_end "/" @punctuation.special)
+  (raw_end "/" @punctuation.special)
+  (else_if_start ":" @punctuation.special)
+  (else_start ":" @punctuation.special)
+  (when_start ":" @punctuation.special)
+  (event_attribute ":" @punctuation.special)
+]
 
 "," @punctuation.delimiter
 

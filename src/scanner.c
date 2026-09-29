@@ -10,13 +10,13 @@ enum TokenType {
     COMMENT,
     SCRIPT_CONTENT,
     STYLE_CONTENT,
-    EXPRESSION_CONTENT,
     INLINE_COMMENT,
     BLOCK_COMMENT,
     DIRECTIVE_EXPRESSION,
-    FORMATTER_ARGUMENT,
     RAW_TEXT,
     RAW_BRACE_VALUE,
+    TEMPLATE_CHARS,
+    OPTIONAL_CHAIN,
 };
 
 typedef struct {
@@ -164,40 +164,17 @@ static bool scan_template_string(TSLexer *lexer) {
 }
 
 // ---------------------------------------------------------------------------
-// Expression scanning
+// Balanced scanning
 //
-// One balanced scanner backs every JavaScript-bearing token in the grammar. It
-// mirrors the compiler's parser.LexSkip / parser.splitTopLevel pair
-// (compiler/internal/parser/lexskip.go, scan.go): strings, template literals,
-// regex literals, and comments are opaque, and (), [], {} nest. The three modes
-// differ only in what terminates the token:
-//
-//   EXPR_INTERP    { expr | formatter }  — stops at a depth-0 '}' OR at a
-//                                          depth-0 SINGLE '|' (a run of two or
-//                                          more '|' is logical-OR, not a pipe;
-//                                          this is splitTopLevel's skipDoubled).
-//                                          Every value position uses it (D173
-//                                          V1): interpolations, attribute and
-//                                          prop values. The {#if}, {:else if},
-//                                          {#unless}, {#case}, {#for} and
-//                                          {:when} headers and @event handler
-//                                          bodies use it too, so a pipe there —
-//                                          a compile error — is split off and
-//                                          flagged.
-//   EXPR_DIRECTIVE {#svg …}               — stops at a depth-0 '}' only.
-//   EXPR_ARG       currency('$', 2)      — stops at a depth-0 ')' or ',' (and,
-//                                          for error recovery, a depth-0 '}').
-//
-// Regex-vs-division follows LexSkip: a '/' after a token that can END an
-// expression is division, otherwise it opens a regex literal. That is what keeps
-// the '|' inside /a|b/ out of the formatter split.
+// Template expressions are parsed by the grammar itself (D176). Two tokens
+// still need a balanced, JavaScript-aware scan — the {#svg …} path and a
+// brace-delimited attribute value inside a {#raw} body — and both go through
+// the one shared skip below. It mirrors the compiler's parser.LexSkip
+// (lexskip.go): strings, template literals, regex literals and comments are
+// opaque, and (), [], {} nest. Regex-vs-division follows LexSkip: a '/' after
+// a token that can END an expression is division, otherwise it opens a regex
+// literal.
 // ---------------------------------------------------------------------------
-
-typedef enum {
-    EXPR_INTERP,
-    EXPR_DIRECTIVE,
-    EXPR_ARG,
-} ExprMode;
 
 // LexSkip's threaded state, carried through every balanced scan in this file.
 typedef struct {
@@ -372,89 +349,27 @@ static bool is_closer_keyword(const char *word) {
     return false;
 }
 
-static bool scan_expression(TSLexer *lexer, ExprMode mode, enum TokenType symbol) {
+// The {#svg …} path: everything up to the '}' that closes the directive, with
+// strings, template literals, regex literals, comments and brackets balanced.
+static bool scan_directive_expression(TSLexer *lexer) {
     bool advanced = false;
     int depth = 0;
     LexState st = {false, false};
 
     while (iswspace(lexer->lookahead)) skip(lexer);
+    if (lexer->lookahead == '}') return false;
 
-    // Reject the openers the internal lexer owns, so '{#if', '{:else' and '{}'
-    // never become an expression.
-    if (mode == EXPR_INTERP) {
-        if (lexer->lookahead == '#' || lexer->lookahead == ':' ||
-            lexer->lookahead == '}') {
-            return false;
-        }
-    } else if (mode == EXPR_DIRECTIVE) {
-        if (lexer->lookahead == '}') return false;
-    } else {
-        if (lexer->lookahead == ')' || lexer->lookahead == ',' ||
-            lexer->lookahead == '}') {
-            return false;
-        }
-    }
-
-    lexer->result_symbol = symbol;
-
-    // A leading '/' is the one genuinely ambiguous byte: it opens either a block
-    // closer ('{/if}') or a regex literal ('{ /\d+/.test(x) }'). Tell them apart
-    // by reading the keyword and requiring the closing brace right after it.
-    // Anything else is a regex, and the bytes read while checking are simply the
-    // first bytes of its body.
-    if (mode == EXPR_INTERP && lexer->lookahead == '/') {
-        advance(lexer);
-        if (lexer->lookahead == '*' || lexer->lookahead == '/') return false;
-        while (iswspace(lexer->lookahead)) advance(lexer);
-        char kwbuf[16];
-        size_t kn = 0;
-        while (((lexer->lookahead >= 'a' && lexer->lookahead <= 'z') ||
-                (lexer->lookahead >= 'A' && lexer->lookahead <= 'Z')) &&
-               kn < sizeof(kwbuf) - 1) {
-            kwbuf[kn++] = (char)lexer->lookahead;
-            advance(lexer);
-        }
-        kwbuf[kn] = '\0';
-        if (is_closer_keyword(kwbuf)) {
-            while (iswspace(lexer->lookahead)) advance(lexer);
-            if (lexer->lookahead == '}') return false;  // a block closer
-        }
-        scan_regex_body(lexer);
-        advanced = true;
-        st.ends_expr = true;
-    }
-
+    lexer->result_symbol = DIRECTIVE_EXPRESSION;
     while (!lexer->eof(lexer)) {
         int32_t c = lexer->lookahead;
-
-        // Terminators are checked before the skip so they can never be consumed
-        // as part of an opaque unit.
         if (c == '}' && depth == 0) {
             lexer->mark_end(lexer);
             return advanced;
         }
-        if (mode == EXPR_ARG && depth == 0 && (c == ')' || c == ',')) {
-            lexer->mark_end(lexer);
-            return advanced;
-        }
-        if (mode == EXPR_INTERP && depth == 0 && c == '|') {
-            lexer->mark_end(lexer);  // a single '|' ends the expression here
-            advance(lexer);
-            if (lexer->lookahead == '|') {
-                while (lexer->lookahead == '|') advance(lexer);  // logical OR
-                advanced = true;
-                st.ends_expr = false;
-                st.after_dot = false;
-                continue;
-            }
-            return advanced;
-        }
-
         if (lex_skip(lexer, &st)) {
             advanced = true;
             continue;
         }
-
         if (c == '(' || c == '[' || c == '{') {
             depth++;
         } else if (c == ')' || c == ']' || c == '}') {
@@ -465,6 +380,47 @@ static bool scan_expression(TSLexer *lexer, ExprMode mode, enum TokenType symbol
         lex_plain(&st, c);
     }
     return false;
+}
+
+// The text of a template literal, up to the closing backtick or a `${`.
+// Escapes are consumed whole, so '\`' and '\${' stay text.
+static bool scan_template_chars(TSLexer *lexer) {
+    bool advanced = false;
+    lexer->result_symbol = TEMPLATE_CHARS;
+    for (;;) {
+        lexer->mark_end(lexer);
+        if (lexer->eof(lexer)) return advanced;
+        switch (lexer->lookahead) {
+            case '`':
+                return advanced;
+            case '$':
+                advance(lexer);
+                if (lexer->lookahead == '{') return advanced;
+                advanced = true;
+                break;
+            case '\\':
+                advance(lexer);
+                if (!lexer->eof(lexer)) advance(lexer);
+                advanced = true;
+                break;
+            default:
+                advance(lexer);
+                advanced = true;
+                break;
+        }
+    }
+}
+
+// `?.` is optional chaining unless a digit follows: `a?.5:1` is `a ? .5 : 1`.
+static bool scan_optional_chain(TSLexer *lexer) {
+    if (lexer->lookahead != '?') return false;
+    advance(lexer);
+    if (lexer->lookahead != '.') return false;
+    advance(lexer);
+    if (lexer->lookahead >= '0' && lexer->lookahead <= '9') return false;
+    lexer->mark_end(lexer);
+    lexer->result_symbol = OPTIONAL_CHAIN;
+    return true;
 }
 
 // A brace-delimited attribute value inside a {#raw} body (D150). The bytes are
@@ -614,7 +570,7 @@ static bool match_word(TSLexer *lexer, const char *kw) {
 static bool match_comment_word(TSLexer *lexer) { return match_word(lexer, "comment"); }
 
 // Raw text inside a {#raw} block (D150). Braces are INERT there — no
-// interpolation, no block tags, no formatter pipes, no @event binding, and '\{'
+// interpolation, no block tags, no expressions, no @event binding, and '\{'
 // is not an escape — but HTML stays structural, so the token stops at any '<'
 // and lets the grammar parse a real element. The only other stop is the first
 // valid, whitespace-tolerant {/raw} closer; raw blocks do NOT nest, so a nested
@@ -756,17 +712,21 @@ bool tree_sitter_puzzle_external_scanner_scan(void *payload, TSLexer *lexer, con
     if (valid_symbols[STYLE_CONTENT]) {
         return scan_section_content(lexer, "</style", STYLE_CONTENT);
     }
-    if (valid_symbols[FORMATTER_ARGUMENT]) {
-        return scan_expression(lexer, EXPR_ARG, FORMATTER_ARGUMENT);
-    }
     if (valid_symbols[DIRECTIVE_EXPRESSION]) {
-        return scan_expression(lexer, EXPR_DIRECTIVE, DIRECTIVE_EXPRESSION);
+        return scan_directive_expression(lexer);
     }
-    if (valid_symbols[EXPRESSION_CONTENT]) {
-        return scan_expression(lexer, EXPR_INTERP, EXPRESSION_CONTENT);
+    if (valid_symbols[TEMPLATE_CHARS]) {
+        return scan_template_chars(lexer);
     }
-    // Deliberately after EXPRESSION_CONTENT: the two are never both valid in a
-    // real parse state, so this only ever fires inside a raw start tag, and
+    // Only in a real parse state: during error recovery every symbol is valid
+    // and RAW_TEXT with it, and skipping whitespace here would change what the
+    // scans below see.
+    if (valid_symbols[OPTIONAL_CHAIN] && !valid_symbols[RAW_TEXT]) {
+        while (iswspace(lexer->lookahead) || lexer->lookahead == 0xFEFF) skip(lexer);
+        return scan_optional_chain(lexer);
+    }
+    // Deliberately after DIRECTIVE_EXPRESSION: the two are never both valid in
+    // a real parse state, so this only ever fires inside a raw start tag, and
     // error recovery (where every symbol is valid) keeps its old behaviour.
     if (valid_symbols[RAW_BRACE_VALUE] && lexer->lookahead == '{') {
         return scan_raw_brace_value(lexer);

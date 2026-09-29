@@ -1,0 +1,35 @@
+<puzzle-view>
+  <p>{ this.title }</p>
+  <!-- ^ error -->
+  <!--      ^ property -->
+  <p>{ x.this + y?.this }</p>
+  <!--   ^ property -->
+  <!--             ^ property -->
+  <p>{ user.name + this.x }</p>
+  <!--             ^ error -->
+  <p>{ f(this) + (this) + this?.x + this[0] }</p>
+  <!--   ^ error -->
+  <!--            ^ error -->
+  <!--                    ^ error -->
+  <!--                              ^ error -->
+  <p>{ { this } }</p>
+  <!--   ^ error -->
+  <p>{ items.map(this => 1) }</p>
+  <!--           ^ error -->
+  <b title={ this.t } class="a { this.c }">k</b>
+  <!--       ^ error -->
+  <!--                           ^ error -->
+  <Card user={ this.user }></Card>
+  <!--         ^ error -->
+  {#if this.ok}k{:else if this.no}l{/if}
+  <!-- ^ error -->
+  <!--                    ^ error -->
+  {#for t in this.todos}<i></i>{/for}
+  <!--       ^ error -->
+  <button @click={ this.save() }>k</button>
+  <!--             ^ error -->
+  <button @click={ save(this.x) }>k</button>
+  <!--                  ^ error -->
+  <p>{ thisValue + that }</p>
+  <!-- ^ variable -->
+</puzzle-view>

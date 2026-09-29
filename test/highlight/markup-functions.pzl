@@ -1,0 +1,65 @@
+<puzzle-view>
+  <p>{ raw(body) }</p>
+  <!-- ^ function.builtin -->
+  k { newline_to_br(note) }
+  <!--^ function.builtin -->
+  <p>{ (raw(body)) }</p>
+  <!--  ^ function.builtin -->
+  {#if a}{ raw(b) }{:else}{ raw(c) }{/if}
+  <!--     ^ function.builtin -->
+  <!--                      ^ function.builtin -->
+  {#for p in posts}{ raw(p.html) }{/for}
+  <!--               ^ function.builtin -->
+  <Card>{ raw(d) }</Card>
+  <!--    ^ function.builtin -->
+  <textarea>{ raw(e) }</textarea>
+  <!--        ^ error -->
+  <svg>{ newline_to_br(e) }</svg>
+  <!--   ^ error -->
+  <p>{ truncate(raw(x), 3) }</p>
+  <!-- ^ function.builtin -->
+  <!--          ^ error -->
+  <p>{ raw(x).length + newline_to_br(y) }</p>
+  <!-- ^ error -->
+  <!--                 ^ error -->
+  <p>{ a ? raw(x) : [newline_to_br(y)] }</p>
+  <!--     ^ error -->
+  <!--               ^ error -->
+  <p title={ raw(i) }>k</p>
+  <!--       ^ error -->
+  <p key={ raw(i) } flip={ (newline_to_br(j)) }>k</p>
+  <!--     ^ error -->
+  <!--                      ^ error -->
+  <Card body={ raw(l) } />
+  <!--         ^ error -->
+  <b class="x { newline_to_br(m) }">n</b>
+  <!--          ^ error -->
+  <Children row={ raw(r) }/>
+  <!--            ^ error -->
+  {#if raw(x)}k{/if}
+  <!-- ^ error -->
+  {#case newline_to_br(x)}{:when raw(y)}k{/case}
+  <!--   ^ error -->
+  <!--                           ^ error -->
+  {#for t in raw(x)}<i></i>{/for}
+  <!--       ^ error -->
+  <button @click={ save(raw(x)) }>k</button>
+  <!--             ^ function -->
+  <!--                  ^ function -->
+  <button @click={ raw(x) }>k</button>
+  <!--             ^ function -->
+  <button @input={ newline_to_br(event.target.value) }>k</button>
+  <!--             ^ function -->
+  <button @click={ on ? f(newline_to_br(s)) : save(`${raw(h)}`, [raw(n)]) }>k</button>
+  <!--                  ^ function -->
+  <!--                    ^ function -->
+  <!--                                        ^ function -->
+  <!--                                                ^ function -->
+  <!--                                                           ^ function -->
+  <p>{ `${raw(x)}` }</p>
+  <!--    ^ error -->
+  <p>{ items.map(x => raw(x)) }</p>
+  <!--                ^ error -->
+  <p>{ raw }</p>
+  <!-- ^ variable -->
+</puzzle-view>

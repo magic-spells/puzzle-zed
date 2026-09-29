@@ -1,0 +1,93 @@
+<puzzle-view>
+  <p>{ currency(price, '$', 2) }</p>
+  <!-- ^ function.builtin -->
+  <!--          ^ variable -->
+  <!--                 ^ string -->
+  <!--                      ^ number -->
+  <p>{ truncate(post.body, 120) + timeago(at) + link(url) }</p>
+  <!-- ^ function.builtin -->
+  <!--               ^ property -->
+  <!--                            ^ function.builtin -->
+  <!--                                          ^ function.builtin -->
+  <p>{ t('cart.count', { count: n }) }</p>
+  <!-- ^ function.builtin -->
+  <!--   ^ string -->
+  <!--                   ^ property -->
+  <!--                          ^ variable -->
+  <p>{ date(d, 'short') + time(in_timezone(d, zone)) }</p>
+  <!-- ^ function.builtin -->
+  <!--                    ^ function.builtin -->
+  <!--                         ^ function.builtin -->
+  <p>{ specialFormat(product.title) }</p>
+  <!-- ^ function -->
+  <p>{ name.trim().toUpperCase() }</p>
+  <!--      ^ function.method -->
+  <!--             ^ function.method -->
+  <p>{ items.filter(t => !t.done).length }</p>
+  <!--       ^ function.method -->
+  <!--              ^ variable.parameter -->
+  <!--                   ^ operator -->
+  <!--                      ^ property -->
+  <!--                            ^ property -->
+  <p>{ items.map((item, i) => `${i}: ${item.name}`) }</p>
+  <!--            ^ variable.parameter -->
+  <!--                        ^ string -->
+  <!--                           ^ variable -->
+  <!--                                      ^ property -->
+  <p>{ user?.name ?? fallback }</p>
+  <!--     ^ punctuation.delimiter -->
+  <!--            ^ operator -->
+  <p>{ a ? 'x' : [1, 2].join(', ') }</p>
+  <!--   ^ operator -->
+  <!--         ^ operator -->
+  <!--                  ^ function.method -->
+  <p>{ Math.round(x / 2) + Number(y) + parseInt(z, 10) }</p>
+  <!-- ^ variable.builtin -->
+  <!--      ^ function.method -->
+  <!--              ^ operator -->
+  <!--                     ^ function.builtin -->
+  <!--                                 ^ function.builtin -->
+  <p>{ ok === true && v != null }</p>
+  <!--    ^ operator -->
+  <!--        ^ boolean -->
+  <!--                     ^ constant.builtin -->
+  <p>{ round(total) + compact_number(n) + number_with_delimiter(n) }</p>
+  <!-- ^ function.builtin -->
+  <!--                ^ function.builtin -->
+  <!--                                    ^ function.builtin -->
+  {#for t in todos.filter(t => !t.done), n}<i>{ n }</i>{/for}
+  <!--  ^ variable.parameter -->
+  <!--    ^ keyword -->
+  <!--             ^ function.method -->
+  <!--                                   ^ variable.parameter -->
+  {#for 1...items.length, i}<i></i>{/for}
+  <!--  ^ number -->
+  <!--    ^ operator -->
+  <!--            ^ property -->
+  {#for low...high, i}<i></i>{/for}
+  <!--     ^ operator -->
+  <!--        ^ variable -->
+  {#case status}{:when 'a', 'b'}k{/case}
+  <!--                 ^ string -->
+  <!--                      ^ string -->
+  <button @click={ save(event.target.value) }>k</button>
+  <!--             ^ function -->
+  <!--                  ^ variable -->
+  <!--                               ^ property -->
+  <button @click={ date(x) } @input={ select(currency(item.price)) }>k</button>
+  <!--             ^ function -->
+  <!--                                ^ function -->
+  <!--                                       ^ function -->
+  <button @click={ on ? t(k) : save(truncate(s, 3), link(p), timeago(d)) }>k</button>
+  <!--                  ^ function -->
+  <!--                         ^ function -->
+  <!--                              ^ function -->
+  <!--                                              ^ function -->
+  <!--                                                       ^ function -->
+  <p class="base { active ? 'on' : '' }">k</p>
+  <!--             ^ variable -->
+  <!--                      ^ string -->
+  <p>{ -a * b % c <= d }</p>
+  <!-- ^ operator -->
+  <!--            ^ operator -->
+</puzzle-view>

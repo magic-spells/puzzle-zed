@@ -31,11 +31,6 @@
   (#any-of? @_lang "ts" "typescript")
   (#set! language "typescript"))
 
-; Puzzle expressions use TypeScript's expression grammar. It is a superset of
-; the JavaScript accepted by Puzzle and gives typed expressions useful colors.
-((expression_content) @content
-  (#set! language "typescript"))
-
 ; <style> is CSS.
 ((style_element
   (style_content) @content)

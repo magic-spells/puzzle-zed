@@ -23,7 +23,8 @@
   "scripts": {
     "generate": "tree-sitter generate",
     "test": "tree-sitter test",
-    "test:examples": "./scripts/test-examples.sh"
+    "test:examples": "./scripts/test-examples.sh",
+    "test:conformance": "node scripts/test-conformance.mjs"
   },
   "tree-sitter": [
     {

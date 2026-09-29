@@ -1,0 +1,41 @@
+<puzzle-view>
+  <p>a<br>b<br/>c<br />d</p><input value={ v } readonly>
+  <!-- ^ tag -->
+  <!-- ^ !error -->
+  <!--      ^ tag -->
+  <!--            ^ tag -->
+  <!--                    ^ tag -->
+  <!--                       ^ tag -->
+  <!--                                     ^ variable -->
+  <p>a<br>b</br></p><input type="text"></input>
+  <!-- ^ tag -->
+  <!--       ^ error -->
+  <!--            ^ tag -->
+  <!--            ^ !error -->
+  <!--                                   ^ error -->
+  {#raw}<p>a<br>b</br></p>{/raw}
+  <!--       ^ tag -->
+  <!--             ^ error -->
+  {#if a}x{:else}y{:else}z{/if}<b>{ after }</b>
+  <!--      ^ keyword -->
+  <!--              ^ error -->
+  <!--                              ^ variable -->
+  {#case k}{:when 1}a{:else}b{:else}c{/case}
+  <!--                 ^ keyword -->
+  <!--                         ^ error -->
+  <pre>{#raw}<puzzle-view>{ sample }</puzzle-view>{/raw}</pre><i>{ live }</i>
+  <!--        ^ tag -->
+  <!--                                ^ tag -->
+  <!--                                                             ^ variable -->
+  <pre>{#raw}<script>const a = "{";</script>{/raw}</pre><i>{ live }</i>
+  <!--        ^ tag -->
+  <!--                               ^ tag -->
+  <!--                                                       ^ variable -->
+</puzzle-view>
+<puzzle-skeleton><pre>{#raw}<puzzle-skeleton>x</puzzle-skeleton>{/raw}</pre><i>{ live }</i></puzzle-skeleton>
+  <!--                       ^ tag -->
+  <!--                                                                           ^ variable -->
+  <!--                                                                                       ^ keyword -->
+<script>
+const x = 1;
+</script>

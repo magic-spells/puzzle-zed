@@ -16,9 +16,6 @@
   (#match? @_start "lang\\s*=\\s*[\"'](?:js|javascript)[\"']")
   (#set! injection.language "javascript"))
 
-((expression_content) @injection.content
-  (#set! injection.language "typescript"))
-
 ((style_element
   (style_content) @injection.content)
   (#set! injection.language "css"))

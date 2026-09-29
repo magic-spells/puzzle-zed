@@ -6,4 +6,7 @@
   (raw_attribute_text)
   (raw_unquoted_attribute_value)
   (raw_brace_value)
+  (string)
+  (template_string)
+  (svg_path)
 ] @string

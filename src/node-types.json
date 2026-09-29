@@ -966,6 +966,10 @@
             "named": true
           },
           {
+            "type": "handler_function_name",
+            "named": true
+          },
+          {
             "type": "member_expression",
             "named": true
           },
@@ -3796,6 +3800,10 @@
   },
   {
     "type": "function_name",
+    "named": true
+  },
+  {
+    "type": "handler_function_name",
     "named": true
   },
   {

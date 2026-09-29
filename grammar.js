@@ -37,6 +37,201 @@ const commaSep1 = rule => seq(rule, repeat(seq(',', rule)));
 // arrays, objects, arguments and arrow parameters.
 const trailingCommaSep = rule => optional(seq(commaSep1(rule), optional(',')));
 
+// The composite expression rules, built once per context. With prefix '' they
+// are the template-expression rules; with 'handler_' they are an @event
+// value's copy, where every visible node is aliased back to its ordinary name
+// so the tree has the same shape, and only a bare callee differs
+// (handler_function_name instead of function_name). Tree-sitter queries have
+// no ancestor test, so the parser has to mark the context for the queries.
+function expressionRules(prefix) {
+  const hidden = name => prefix ? `_${prefix}${name.slice(1)}` : name;
+  // A visible node, aliased back to its own name in the handler copy.
+  const node = ($, name) => prefix ? alias($[prefix + name], $[name]) : $[name];
+  const ref = ($, name) => name.startsWith('_') ? $[hidden(name)] : node($, name);
+  const calleeName = prefix ? 'handler_function_name' : 'function_name';
+  const rules = {
+    _expression: $ => choice(
+      ref($, '_primary_expression'),
+      ref($, 'unary_expression'),
+      ref($, 'binary_expression'),
+      ref($, 'ternary_expression'),
+    ),
+
+    _primary_expression: $ => choice(
+      $.identifier,
+      $.this,
+      $.number,
+      $.string,
+      ref($, 'template_string'),
+      ref($, 'array'),
+      ref($, 'object'),
+      ref($, 'parenthesized_expression'),
+      ref($, 'member_expression'),
+      ref($, 'subscript_expression'),
+      ref($, 'call_expression'),
+    ),
+
+    template_string: $ => seq(
+      '`',
+      repeat(choice($._template_chars, ref($, 'template_substitution'))),
+      '`',
+    ),
+
+    template_substitution: $ => seq(
+      '${',
+      ref($, '_expression'),
+      '}',
+    ),
+
+    array: $ => seq(
+      '[',
+      trailingCommaSep(ref($, '_expression')),
+      ']',
+    ),
+
+    object: $ => seq(
+      '{',
+      trailingCommaSep(choice(
+        ref($, 'pair'),
+        alias($.identifier, $.shorthand_property_identifier),
+        $.this,
+      )),
+      '}',
+    ),
+
+    pair: $ => seq(
+      field('key', choice(alias($.identifier, $.property_identifier), $.string)),
+      ':',
+      field('value', ref($, '_expression')),
+    ),
+
+    parenthesized_expression: $ => seq(
+      '(',
+      ref($, '_expression'),
+      ')',
+    ),
+
+    member_expression: $ => prec(PREC.member, seq(
+      field('object', ref($, '_primary_expression')),
+      choice('.', $.optional_chain),
+      field('property', alias($.identifier, $.property_identifier)),
+    )),
+
+    subscript_expression: $ => prec(PREC.member, seq(
+      field('object', ref($, '_primary_expression')),
+      optional($.optional_chain),
+      '[',
+      field('index', ref($, '_expression')),
+      ']',
+    )),
+
+    // The callee's shape is decided by the parser, not by the highlight
+    // queries, so each name gets exactly one capture: a bare `name(…)` is a
+    // function_name (a library or app function) or, in an @event value, a
+    // handler_function_name; `a.m(…)` puts a method_name in the
+    // member_expression, and any other callee is an ordinary expression.
+    call_expression: $ => prec(PREC.call, seq(
+      field('function', choice(
+        alias($.identifier, $[calleeName]),
+        alias($[hidden('_method')], $.member_expression),
+        ref($, 'parenthesized_expression'),
+        ref($, 'call_expression'),
+        ref($, 'subscript_expression'),
+        $.this,
+        $.number,
+        $.string,
+        ref($, 'template_string'),
+        ref($, 'array'),
+      )),
+      field('arguments', ref($, 'arguments')),
+    )),
+
+    _method: $ => seq(
+      field('object', ref($, '_primary_expression')),
+      choice('.', $.optional_chain),
+      field('property', alias($.identifier, $.method_name)),
+    ),
+
+    // Arrow functions are legal only as call arguments (D176 rule 1).
+    arguments: $ => seq(
+      '(',
+      trailingCommaSep(choice(ref($, '_expression'), ref($, 'arrow_function'))),
+      ')',
+    ),
+
+    arrow_function: $ => seq(
+      field('parameters', choice(ref($, '_arrow_parameter'), ref($, 'formal_parameters'))),
+      '=>',
+      field('body', ref($, '_expression')),
+    ),
+
+    _arrow_parameter: $ => choice(
+      alias($.identifier, $.parameter),
+      $.this,
+    ),
+
+    formal_parameters: $ => seq(
+      '(',
+      trailingCommaSep(ref($, '_arrow_parameter')),
+      ')',
+    ),
+
+    unary_expression: $ => prec.left(PREC.unary, seq(
+      field('operator', choice('!', '-', '+', '~')),
+      field('argument', ref($, '_expression')),
+    )),
+
+    binary_expression: $ => choice(
+      ...[
+        ['??', PREC.coalesce],
+        ['||', PREC.or],
+        ['&&', PREC.and],
+        ['|', PREC.bitor],
+        ['^', PREC.bitxor],
+        ['&', PREC.bitand],
+        ['==', PREC.equality],
+        ['!=', PREC.equality],
+        ['===', PREC.equality],
+        ['!==', PREC.equality],
+        ['<', PREC.relational],
+        ['<=', PREC.relational],
+        ['>', PREC.relational],
+        ['>=', PREC.relational],
+        ['<<', PREC.shift],
+        ['>>', PREC.shift],
+        ['>>>', PREC.shift],
+        ['+', PREC.additive],
+        ['-', PREC.additive],
+        ['*', PREC.multiplicative],
+        ['/', PREC.multiplicative],
+        ['%', PREC.multiplicative],
+      ].map(([operator, precedence]) => prec.left(precedence, seq(
+        field('left', ref($, '_expression')),
+        field('operator', operator),
+        field('right', ref($, '_expression')),
+      ))),
+      prec.right(PREC.exponent, seq(
+        field('left', ref($, '_expression')),
+        field('operator', '**'),
+        field('right', ref($, '_expression')),
+      )),
+    ),
+
+    ternary_expression: $ => prec.right(PREC.ternary, seq(
+      field('condition', ref($, '_expression')),
+      '?',
+      field('consequence', ref($, '_expression')),
+      ':',
+      field('alternative', ref($, '_expression')),
+    )),
+  };
+  const named = {};
+  for (const [name, rule] of Object.entries(rules)) {
+    named[name.startsWith('_') ? hidden(name) : prefix + name] = rule;
+  }
+  return named;
+}
+
 module.exports = grammar({
   name: 'puzzle',
 
@@ -54,6 +249,7 @@ module.exports = grammar({
     // `(x)` is a parenthesized expression until a `=>` makes it an arrow
     // function's parameter list.
     [$._primary_expression, $._arrow_parameter],
+    [$._handler_primary_expression, $._handler_arrow_parameter],
   ],
 
   externals: $ => [
@@ -278,13 +474,13 @@ module.exports = grammar({
       )),
     ),
 
-    // An @event value is a call to one of the view's handlers — the whole
-    // value, or each branch of a top-level conditional (D176 rule 7) — whose
-    // arguments are ordinary template expressions with `event` in scope. It
-    // parses as the same expression every other position does.
+    // An @event value is a call to one of the view's handlers with data
+    // arguments, `event` in scope — or a conditional choosing between two. It
+    // parses with the handler copy of the expression rules (see
+    // expressionRules), so its bare callees are handler_function_name nodes.
     event_handler: $ => seq(
       '{',
-      field('value', $._expression),
+      field('value', $._handler_expression),
       '}',
     ),
 
@@ -723,30 +919,11 @@ module.exports = grammar({
     // is what lets the highlight queries flag the three things an editor can
     // see without the compiler: a single `|` (there is no pipe and no bitwise
     // OR), `this`, and `raw()`/`newline_to_br()` anywhere but the whole of a
-    // text interpolation. The grammar is deliberately a little wider than the
-    // language — bitwise operators and `**` parse — and everything the
-    // compiler decides (the method table, the excluded operators, which names
-    // resolve) is left to the compiler.
-    _expression: $ => choice(
-      $._primary_expression,
-      $.unary_expression,
-      $.binary_expression,
-      $.ternary_expression,
-    ),
-
-    _primary_expression: $ => choice(
-      $.identifier,
-      $.this,
-      $.number,
-      $.string,
-      $.template_string,
-      $.array,
-      $.object,
-      $.parenthesized_expression,
-      $.member_expression,
-      $.subscript_expression,
-      $.call_expression,
-    ),
+    // text interpolation (an @event value, a plain call to a view handler,
+    // gets only the first two). The grammar is deliberately a little wider
+    // than the language — bitwise operators and `**` parse — and everything
+    // the compiler decides (the method table, the excluded operators, which
+    // names resolve) is left to the compiler.
 
     // JavaScript's ID_Start / ID_Continue, plus '$', '_' and the two joiners.
     // `true`, `null`, `undefined`, `NaN` and friends are identifiers here; the
@@ -770,158 +947,16 @@ module.exports = grammar({
       /"([^"\\\r\n]|\\(.|\r?\n))*"/,
     )),
 
-    template_string: $ => seq(
-      '`',
-      repeat(choice($._template_chars, $.template_substitution)),
-      '`',
-    ),
+    // Every template expression but an @event value.
+    ...expressionRules(''),
 
-    template_substitution: $ => seq(
-      '${',
-      $._expression,
-      '}',
-    ),
-
-    array: $ => seq(
-      '[',
-      trailingCommaSep($._expression),
-      ']',
-    ),
-
-    object: $ => seq(
-      '{',
-      trailingCommaSep(choice(
-        $.pair,
-        alias($.identifier, $.shorthand_property_identifier),
-        $.this,
-      )),
-      '}',
-    ),
-
-    pair: $ => seq(
-      field('key', choice(alias($.identifier, $.property_identifier), $.string)),
-      ':',
-      field('value', $._expression),
-    ),
-
-    parenthesized_expression: $ => seq(
-      '(',
-      $._expression,
-      ')',
-    ),
-
-    member_expression: $ => prec(PREC.member, seq(
-      field('object', $._primary_expression),
-      choice('.', $.optional_chain),
-      field('property', alias($.identifier, $.property_identifier)),
-    )),
-
-    subscript_expression: $ => prec(PREC.member, seq(
-      field('object', $._primary_expression),
-      optional($.optional_chain),
-      '[',
-      field('index', $._expression),
-      ']',
-    )),
-
-    // The callee's shape is decided by the parser, not by the highlight
-    // queries, so each name gets exactly one capture: a bare `name(…)` is a
-    // function_name (a library or app function; in an @event value, the
-    // view's handler), `a.m(…)` puts a method_name in the member_expression,
-    // and any other callee is an ordinary expression.
-    call_expression: $ => prec(PREC.call, seq(
-      field('function', choice(
-        alias($.identifier, $.function_name),
-        alias($._method, $.member_expression),
-        $.parenthesized_expression,
-        $.call_expression,
-        $.subscript_expression,
-        $.this,
-        $.number,
-        $.string,
-        $.template_string,
-        $.array,
-      )),
-      field('arguments', $.arguments),
-    )),
-
-    _method: $ => seq(
-      field('object', $._primary_expression),
-      choice('.', $.optional_chain),
-      field('property', alias($.identifier, $.method_name)),
-    ),
-
-    // Arrow functions are legal only as call arguments (D176 rule 1).
-    arguments: $ => seq(
-      '(',
-      trailingCommaSep(choice($._expression, $.arrow_function)),
-      ')',
-    ),
-
-    arrow_function: $ => seq(
-      field('parameters', choice($._arrow_parameter, $.formal_parameters)),
-      '=>',
-      field('body', $._expression),
-    ),
-
-    _arrow_parameter: $ => choice(
-      alias($.identifier, $.parameter),
-      $.this,
-    ),
-
-    formal_parameters: $ => seq(
-      '(',
-      trailingCommaSep($._arrow_parameter),
-      ')',
-    ),
-
-    unary_expression: $ => prec.left(PREC.unary, seq(
-      field('operator', choice('!', '-', '+', '~')),
-      field('argument', $._expression),
-    )),
-
-    binary_expression: $ => choice(
-      ...[
-        ['??', PREC.coalesce],
-        ['||', PREC.or],
-        ['&&', PREC.and],
-        ['|', PREC.bitor],
-        ['^', PREC.bitxor],
-        ['&', PREC.bitand],
-        ['==', PREC.equality],
-        ['!=', PREC.equality],
-        ['===', PREC.equality],
-        ['!==', PREC.equality],
-        ['<', PREC.relational],
-        ['<=', PREC.relational],
-        ['>', PREC.relational],
-        ['>=', PREC.relational],
-        ['<<', PREC.shift],
-        ['>>', PREC.shift],
-        ['>>>', PREC.shift],
-        ['+', PREC.additive],
-        ['-', PREC.additive],
-        ['*', PREC.multiplicative],
-        ['/', PREC.multiplicative],
-        ['%', PREC.multiplicative],
-      ].map(([operator, precedence]) => prec.left(precedence, seq(
-        field('left', $._expression),
-        field('operator', operator),
-        field('right', $._expression),
-      ))),
-      prec.right(PREC.exponent, seq(
-        field('left', $._expression),
-        field('operator', '**'),
-        field('right', $._expression),
-      )),
-    ),
-
-    ternary_expression: $ => prec.right(PREC.ternary, seq(
-      field('condition', $._expression),
-      '?',
-      field('consequence', $._expression),
-      ':',
-      field('alternative', $._expression),
-    )),
+    // An @event value: the same expression, parsed by a copy of the rules
+    // above whose nodes are aliased back to the same names. The one
+    // difference is a bare callee, which is a handler_function_name here and
+    // a function_name everywhere else. An @event value is a call to one of
+    // the view's handlers with data arguments, so the highlight queries give
+    // every call in it the plain function capture — no library builtin and
+    // no markup-function rule — while `|` and `this` are flagged as anywhere.
+    ...expressionRules('handler_'),
   },
 });

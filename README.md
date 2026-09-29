@@ -19,16 +19,23 @@ The grammar tracks the **Puzzle 0.8.0** template grammar.
   `t('cart.count', { count: n })`, `date(d, 'short')`, `timeago(at)`, …),
   along with the JavaScript globals (`Math.round`, `Number`, `parseInt`, …);
   an app's own registered functions scope as ordinary functions
+- `@event` values as plain calls: a handler is a call to one of the view's
+  methods with data arguments (`@click={ select(item.id) }`,
+  `@input={ setName(event.target.value) }`, or a ternary choosing between two
+  handlers). The grammar parses its bare callees as `handler_function_name`,
+  scoped as ordinary functions — the handler and every call in its arguments,
+  with no library builtin and no `raw`/`newline_to_br` rule, even when a name
+  matches a library function
 - Puzzle conditionals, case blocks, collection/range loops, and SVG directives
 - `{#raw}` blocks: structural HTML inside, inert braces, no markers
 - Escaped braces: `\{` and `\}` are literal text, never an interpolation, and
   are scoped as escapes — in template text and in quoted attribute values, but
   deliberately not inside `{#raw}`, where the bytes stay verbatim
 - A single `|` anywhere in a template expression — text, attribute value,
-  prop, marker argument, block header or handler — is flagged invalid: there
+  prop, marker argument, block header or `@event` handler — is flagged invalid: there
   is no pipe and no bitwise OR. `||` is logical OR, and a `|` inside a string
   or template literal is text. `<script>` and `<style>` are untouched
-- `this` is flagged invalid in every template expression, handlers included
+- `this` is flagged invalid in every template expression, `@event` handlers included
   (`x.this` is an ordinary property)
 - `raw()` and `newline_to_br()` scoped as builtins only as the whole of a text
   interpolation (parentheses aside); in an attribute value, prop, marker

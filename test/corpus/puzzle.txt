@@ -47,7 +47,7 @@ export default class Album extends PuzzleView {}
           (event_modifier)
           (event_handler
             (call_expression
-              (function_name)
+              (handler_function_name)
               (arguments
                 (identifier)))))))
     (text)
@@ -290,7 +290,7 @@ Collection and range loops
             (event_name)
             (event_handler
               (call_expression
-                (function_name)
+                (handler_function_name)
                 (arguments
                   (identifier)))))))
       (text)
@@ -387,7 +387,7 @@ Inline directives and balanced braces
             (event_name)
             (event_handler
               (call_expression
-                (function_name)
+                (handler_function_name)
                 (arguments
                   (object
                     (pair
@@ -1810,7 +1810,7 @@ A single '|' parses as an operator in an event handler
             (event_name)
             (event_handler
               (call_expression
-                (function_name)
+                (handler_function_name)
                 (arguments
                   (binary_expression
                     (identifier)
@@ -1861,7 +1861,7 @@ Object literals in call arguments and as a whole value
             (event_name)
             (event_handler
               (call_expression
-                (function_name)
+                (handler_function_name)
                 (arguments
                   (object
                     (pair
@@ -2254,7 +2254,7 @@ Template expressions (D176)
               (ternary_expression
                 (identifier)
                 (call_expression
-                  (function_name)
+                  (handler_function_name)
                   (arguments
                     (identifier)))
                 (identifier))))))

@@ -121,8 +121,8 @@
 ; A bare call: the function library (the 19 standard functions plus
 ; PuzzleKit's `link` and `timeago`) and the JavaScript global functions are
 ; builtins; any other name is an app function registered through the
-; `formatters` config map, or, in an @event value, the view's handler.
-; `raw` and `newline_to_br` are placed by the patterns further down.
+; `formatters` config map. `raw` and `newline_to_br` are placed by the
+; patterns further down. None of this reaches an @event value (below).
 ((function_name) @function.builtin
   (#any-of? @function.builtin
     "round" "currency" "percentage" "number_with_delimiter" "compact_number"
@@ -139,6 +139,13 @@
     "link" "timeago"
     "Number" "String" "Boolean" "parseInt" "parseFloat" "isNaN" "isFinite"
     "raw" "newline_to_br"))
+
+; An @event value is a call to one of the view's handlers with data
+; arguments. The grammar parses its bare callees as handler_function_name —
+; the handler itself and every call in its arguments — and each is a plain
+; function, with no library builtin and no markup-function rule, even when the
+; name matches a library function. Only `|` and `this` are flagged there.
+(handler_function_name) @function
 
 ; `raw` and `newline_to_br` render markup, so each is legal only as the whole
 ; of a TEXT interpolation — the outermost call, parentheses aside — and not
@@ -341,10 +348,9 @@
   ]
   (#any-of? @error "raw" "newline_to_br"))
 
-; Nested inside another expression: a call argument (an @event handler's
-; arguments included), an operand, a receiver, an element, a property value,
-; a template substitution or an arrow body. Its output is markup, and no
-; function or operator takes markup as input.
+; Nested inside another expression: a call argument, an operand, a receiver,
+; an element, a property value, a template substitution or an arrow body. Its
+; output is markup, and no function or operator takes markup as input.
 ([
   (arguments (call_expression function: (function_name) @error))
   (binary_expression (call_expression function: (function_name) @error))
@@ -359,12 +365,6 @@
   (arrow_function (call_expression function: (function_name) @error))
   ]
   (#any-of? @error "raw" "newline_to_br"))
-
-; The whole of an @event value calls the view's handler first (D176 rule 4),
-; so a handler that happens to be named `raw` is the view's, not markup.
-((event_handler
-  value: (call_expression function: (function_name) @function))
-  (#any-of? @function "raw" "newline_to_br"))
 
 ; There is no pipe and no bitwise OR (D176): a single `|` anywhere in a
 ; template expression — text, attribute value, prop, marker argument, block

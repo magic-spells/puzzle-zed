@@ -45,9 +45,17 @@
   <!--       ^ error -->
   <button @click={ save(raw(x)) }>k</button>
   <!--             ^ function -->
-  <!--                  ^ error -->
+  <!--                  ^ function -->
   <button @click={ raw(x) }>k</button>
   <!--             ^ function -->
+  <button @input={ newline_to_br(event.target.value) }>k</button>
+  <!--             ^ function -->
+  <button @click={ on ? f(newline_to_br(s)) : save(`${raw(h)}`, [raw(n)]) }>k</button>
+  <!--                  ^ function -->
+  <!--                    ^ function -->
+  <!--                                        ^ function -->
+  <!--                                                ^ function -->
+  <!--                                                           ^ function -->
   <p>{ `${raw(x)}` }</p>
   <!--    ^ error -->
   <p>{ items.map(x => raw(x)) }</p>

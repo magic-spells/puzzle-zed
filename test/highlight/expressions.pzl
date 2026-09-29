@@ -74,6 +74,16 @@
   <!--             ^ function -->
   <!--                  ^ variable -->
   <!--                               ^ property -->
+  <button @click={ date(x) } @input={ select(currency(item.price)) }>k</button>
+  <!--             ^ function -->
+  <!--                                ^ function -->
+  <!--                                       ^ function -->
+  <button @click={ on ? t(k) : save(truncate(s, 3), link(p), timeago(d)) }>k</button>
+  <!--                  ^ function -->
+  <!--                         ^ function -->
+  <!--                              ^ function -->
+  <!--                                              ^ function -->
+  <!--                                                       ^ function -->
   <p class="base { active ? 'on' : '' }">k</p>
   <!--             ^ variable -->
   <!--                      ^ string -->

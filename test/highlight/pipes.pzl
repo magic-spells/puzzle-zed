@@ -31,6 +31,9 @@
   <!--        ^ error -->
   <button @click={ save(a | b) }>k</button>
   <!--                    ^ error -->
+  <button @click={ a | b } @input={ on ? f(x | 1) : g() }>k</button>
+  <!--               ^ error -->
+  <!--                                       ^ error -->
   <p>{ f(a) | g(b, c) | h }</p>
   <!--      ^ error -->
   <!--                ^ error -->

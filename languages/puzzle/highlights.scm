@@ -70,13 +70,18 @@
 ; attribute value; deliberately never inside {#raw}, whose bytes stay verbatim.
 (escaped_brace) @string.escape
 
-; The complete event-modifier set: four generic modifiers plus ten key filters.
+; The complete event-modifier set: six generic modifiers plus ten key filters.
 ; The compiler rejects anything else.
 ((event_modifier) @attribute
-  (#match? @attribute "^(prevent|stop|once|outside|enter|escape|tab|space|up|down|left|right|backspace|delete)$"))
+  (#match? @attribute "^(prevent|stop|once|outside|passive|capture|enter|escape|tab|space|up|down|left|right|backspace|delete)$"))
 
 ((event_modifier) @invalid
-  (#not-match? @invalid "^(prevent|stop|once|outside|enter|escape|tab|space|up|down|left|right|backspace|delete)$"))
+  (#not-match? @invalid "^(prevent|stop|once|outside|passive|capture|enter|escape|tab|space|up|down|left|right|backspace|delete)$"))
+
+; {...expr} in attribute position spreads an object into a component's props.
+(spread_attribute
+  ["{" "}"] @punctuation.bracket
+  "..." @operator)
 
 ; {#raw} … {/raw} bodies are literal HTML: real tags, but no markers, no
 ; directive attributes, and no interpolation.

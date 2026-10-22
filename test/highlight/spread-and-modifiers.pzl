@@ -1,0 +1,14 @@
+<puzzle-view>
+  <Component is={ cards[embed.type] } {...embed.props} title="x"></Component>
+  <!--                                ^ punctuation.bracket -->
+  <!--                                 ^ operator -->
+  <!--                                    ^ variable -->
+  <!--                                               ^ punctuation.bracket -->
+  <div @wheel:passive={ onWheel(event) }></div>
+  <!--        ^ attribute -->
+  <div @click:capture:once={ go() }></div>
+  <!--        ^ attribute -->
+  <!--                ^ attribute -->
+  <div @click:passiv={ go() }></div>
+  <!--        ^ error -->
+</puzzle-view>

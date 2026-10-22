@@ -3,7 +3,7 @@
 Puzzle single-file component support for [Zed](https://zed.dev), backed by a
 standalone Tree-sitter grammar.
 
-The grammar tracks the **Puzzle 0.8.0** template grammar.
+The grammar tracks the **Puzzle 0.9.0** template grammar.
 
 ## Features
 
@@ -26,6 +26,11 @@ The grammar tracks the **Puzzle 0.8.0** template grammar.
   scoped as ordinary functions — the handler and every call in its arguments,
   with no library builtin and no `raw`/`newline_to_br` rule, even when a name
   matches a library function
+- Spread attributes: `{...embed.props}` in attribute position parses as a
+  `spread_attribute` whose value is an ordinary template expression
+  (`<Component is={ cards[embed.type] } {...embed.props} title="x">`). Only
+  component tags accept one; a spread on an element or a composition marker
+  is left to the compiler to report
 - Puzzle conditionals, case blocks, collection/range loops, and SVG directives
 - `{#raw}` blocks: structural HTML inside, inert braces, no markers. The body
   is one span, so a `<puzzle-view>…</puzzle-view>` or `<script>…</script>`
@@ -60,7 +65,7 @@ The grammar tracks the **Puzzle 0.8.0** template grammar.
   `<Slot name="row" user={ user }>`
 - Distinct component tags — including dotted component-family member paths
   such as `<Frame.Wrapper>` (D167) — event/action names, and `@` sigils, plus the
-  fourteen legal event modifiers scoped apart from unknown ones. A tag is a
+  sixteen legal event modifiers scoped apart from unknown ones. A tag is a
   component when its first character is anything but an ASCII lowercase
   letter, so `<Übersicht>`, `<概要>` and `<_x>` are components and
   `<straße-karte>` is an element

@@ -467,6 +467,19 @@ module.exports = grammar({
     attribute: $ => choice(
       $.event_attribute,
       $.normal_attribute,
+      $.spread_attribute,
+    ),
+
+    // {...expr} in attribute position spreads an object into a component's
+    // props in written order; later attributes or spreads win. The expression
+    // after '...' is an ordinary template expression. Only component tags
+    // accept a spread — on an element or a composition marker it is a compile
+    // error the compiler reports — so the grammar parses it on any tag.
+    spread_attribute: $ => seq(
+      '{',
+      '...',
+      field('value', $._expression),
+      '}',
     ),
 
     normal_attribute: $ => seq(

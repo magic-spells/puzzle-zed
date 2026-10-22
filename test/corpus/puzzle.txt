@@ -3005,3 +3005,104 @@ Raw brace values: a slash after a non-ASCII name, a trailing-dot number or `of` 
     (view_end_tag
       (section_tag_name)))
   (text))
+
+===============================
+Spread attributes on components
+===============================
+
+<puzzle-view><Component is={ cards[embed.type] } {...embed.props} title="x"><Card { ...props } {...{ a: 1 }}/></Component></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        (tag_name)
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (interpolation
+              (subscript_expression
+                (identifier)
+                (member_expression
+                  (identifier)
+                  (property_identifier))))))
+        (attribute
+          (spread_attribute
+            (member_expression
+              (identifier)
+              (property_identifier))))
+        (attribute
+          (normal_attribute
+            (attribute_name)
+            (quoted_attribute_value
+              (attribute_text)))))
+      (self_closing_element
+        (tag_name)
+        (attribute
+          (spread_attribute
+            (identifier)))
+        (attribute
+          (spread_attribute
+            (object
+              (pair
+                (property_identifier)
+                (number))))))
+      (end_tag
+        (tag_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))
+
+===================================
+Passive and capture event modifiers
+===================================
+
+<puzzle-view><div @wheel:passive={ onWheel(event) } @click:capture:once={ go() } @pointerdown:outside:capture={ close() }></div></puzzle-view>
+
+---
+
+(document
+  (text)
+  (view_element
+    (view_start_tag
+      (section_tag_name))
+    (element
+      (start_tag
+        (tag_name)
+        (attribute
+          (event_attribute
+            (event_name)
+            (event_modifier)
+            (event_handler
+              (call_expression
+                (handler_function_name)
+                (arguments
+                  (identifier))))))
+        (attribute
+          (event_attribute
+            (event_name)
+            (event_modifier)
+            (event_modifier)
+            (event_handler
+              (call_expression
+                (handler_function_name)
+                (arguments)))))
+        (attribute
+          (event_attribute
+            (event_name)
+            (event_modifier)
+            (event_modifier)
+            (event_handler
+              (call_expression
+                (handler_function_name)
+                (arguments))))))
+      (end_tag
+        (tag_name)))
+    (view_end_tag
+      (section_tag_name)))
+  (text))

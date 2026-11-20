@@ -58,8 +58,10 @@ The grammar tracks the **Puzzle 0.9.0** template grammar.
   argument, `key=`/`flip=`, a block header, nested inside another call or
   operator, or directly inside a text-only element (`<textarea>`, `<title>`, …)
   or `<svg>`/`<math>`, they are flagged invalid
-- Composition markers (`<Children>`, `<Slot>`, `<Portal>`, `<Snippet>`) scoped
-  apart from user components, with the lowercase spellings flagged
+- Composition markers (`<Children>`, `<Outlet>`, `<Slot>`, `<Portal>`,
+  `<Snippet>`) scoped apart from user components, with the lowercase spellings
+  flagged. `<Outlet>` (Puzzle 0.10, D199) is the router outlet in a layout or
+  view, the tag a bare `<Slot/>` used to be; `<Slot>` now always takes a `name`
 - Snippets (D166): `<Snippet user>` bare parameters, `<Snippet fits="row" …>`,
   and brace-valued marker arguments — `<Children user={ user }>`,
   `<Slot name="row" user={ user }>`

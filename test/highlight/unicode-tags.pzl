@@ -46,6 +46,20 @@
   <!-- ^ !type -->
       <Slot name="row"/>
   <!-- ^ keyword -->
+      <Outlet/>
+  <!-- ^ keyword -->
+  <!-- ^ !type -->
+      <Outlet>none</Outlet>
+  <!-- ^ keyword -->
+  <!-- ^ !type -->
+      <OutletFrame/>
+  <!-- ^ type -->
+  <!-- ^ !keyword -->
+      <outlet></outlet>
+  <!-- ^ error -->
+      <outlet-frame></outlet-frame>
+  <!-- ^ tag -->
+  <!-- ^ !error -->
   {#raw}<Übersicht/>{/raw}
   <!--   ^ tag -->
   <!--   ^ !type -->

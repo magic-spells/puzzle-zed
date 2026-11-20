@@ -10,36 +10,38 @@
 (section_tag_name) @tag @keyword
 
 ; Composition markers are framework syntax, not user components: <Children>,
-; <Slot name="x">, the bare <Slot> router outlet, <Portal>, and the caller-side
-; <Snippet> (D166). Every pattern in this block is mutually exclusive with every
-; other, so no node ever picks up two captures and the order does not matter.
+; <Outlet> (the router outlet, D199, the tag a bare <Slot> used to be),
+; <Slot name="x">, <Portal>, and the caller-side <Snippet> (D166). Every
+; pattern in this block is mutually exclusive with every other, so no node ever
+; picks up two captures and the order does not matter.
 ((start_tag
   name: (tag_name) @tag @keyword)
-  (#match? @keyword "^(Children|Slot|Portal|Snippet)$"))
+  (#match? @keyword "^(Children|Outlet|Slot|Portal|Snippet)$"))
 
 ((end_tag
   name: (tag_name) @tag @keyword)
-  (#match? @keyword "^(Children|Slot|Portal|Snippet)$"))
+  (#match? @keyword "^(Children|Outlet|Slot|Portal|Snippet)$"))
 
-; <Children/> and <Slot/> are self-closing; <Portal> and <Snippet> are
-; paired-only, so a self-closing spelling of either is a compile error.
+; <Children/>, <Outlet/> and <Slot/> are self-closing; <Portal> and <Snippet>
+; are paired-only, so a self-closing spelling of either is a compile error.
 ((self_closing_element
   name: (tag_name) @tag @keyword)
-  (#match? @keyword "^(Children|Slot)$"))
+  (#match? @keyword "^(Children|Outlet|Slot)$"))
 
 ((self_closing_element
   name: (tag_name) @tag @invalid)
   (#match? @invalid "^(Portal|Snippet)$"))
 
-; A lowercase <slot>/<children>/<portal> is a compile error steering to the
-; capitalized form (D134). <snippet> is deliberately absent: it only steers when
-; it carries a `fits` attribute (D166), so on its own it stays ordinary HTML.
+; A lowercase <slot>/<children>/<outlet>/<portal> is a compile error steering
+; to the capitalized form (D134). <snippet> is deliberately absent: it only
+; steers when it carries a `fits` attribute (D166), so on its own it stays
+; ordinary HTML.
 ((tag_name) @tag @invalid
-  (#match? @invalid "^(children|slot|portal)$"))
+  (#match? @invalid "^(children|outlet|slot|portal)$"))
 
 ((tag_name) @tag
   (#match? @tag "^[a-z]")
-  (#not-match? @tag "^(children|slot|portal)$"))
+  (#not-match? @tag "^(children|outlet|slot|portal)$"))
 
 ; A tag whose first character is anything but an ASCII lowercase letter is a
 ; component (D167): <Card>, <Übersicht>, <概要>, <_x>. The name may be a dotted
@@ -48,7 +50,7 @@
 ; like <Slot.Custom> lands here rather than reading as a marker.
 ((tag_name) @tag @type
   (#match? @type "^[^a-z]")
-  (#not-match? @type "^(Children|Slot|Portal|Snippet)$"))
+  (#not-match? @type "^(Children|Outlet|Slot|Portal|Snippet)$"))
 
 ; HTML void elements need no slash. A void element has no closing tag, so a
 ; </br> or </input> is a compile error, flagged where it stands; the parser

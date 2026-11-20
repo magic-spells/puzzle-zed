@@ -572,7 +572,7 @@ Paired composition markers with fallback bodies
     <Slot name="header"><h2>{ capitalize(title) }</h2></Slot>
     <Children>{#if empty}<p>none</p>{:else}<ItemCard item={ item }/>{/if}</Children>
   </Card>
-  <Slot>{ number_with_delimiter(count) } left{#svg 'icons/empty.svg'}</Slot>
+  <Outlet>{ number_with_delimiter(count) } left{#svg 'icons/empty.svg'}</Outlet>
 </puzzle-view>
 
 ---
